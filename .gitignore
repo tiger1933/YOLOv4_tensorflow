@@ -130,7 +130,7 @@ dmypy.json
 
 # add by rdc
 /data/*
-/data/*.txt
+data/*.txt
 /checkpoint/*
 /save/*
 /test_pic/*
