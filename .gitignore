@@ -132,6 +132,6 @@ dmypy.json
 # data/*
 checkpoint/*
 save/
-# test_pic/*
+test_pic/*
 log/
 yolov4.pdf
