@@ -129,9 +129,9 @@ dmypy.json
 .pyre/
 
 # add by rdc
-data/
-checkpoint/
+# data/*
+checkpoint/*
 save/
-test_pic/
+# test_pic/*
 log/
 yolov4.pdf

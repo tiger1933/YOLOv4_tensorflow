@@ -1,0 +1,2 @@
+/home/random/文档/YOLO/YOLOv4_tensorflow_rrddcc_github/data/JPEGImages/50108/63.jpg
+/home/random/文档/YOLO/YOLOv4_tensorflow_rrddcc_github/data/JPEGImages/50108/61.jpg
