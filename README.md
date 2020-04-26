@@ -3,8 +3,6 @@ yolov4的tensorflow实现. <br/>
 Implement yolov4 with tensorflow<br/>
 持续更新<br/>
 continuous update the code<br/>
-## 发现代码有一点问题，待我改一改
-## hey guys,  i'm found some bug in the code, and give me some times.
 
 ## 二战中科院计算所失败，跪求好老师调剂收留
 ## I want to be a graduate student.
