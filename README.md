@@ -4,7 +4,7 @@ Implement yolov4 with tensorflow<br/>
 持续更新<br/>
 continuous update the code<br/>
 
-## 二战中科院计算所失败，跪求好老师调剂收留
+## 二战中科院计算所失败，求老师调剂收留
 ## I want to be a graduate student.
 277118506@qq.com<br/>
 rdc01234@163.com<br/>

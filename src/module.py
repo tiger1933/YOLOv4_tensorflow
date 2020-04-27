@@ -40,27 +40,31 @@ def padding_fixed(inputs, kernel_size):
     return inputs
 
 # yolo 残差模块实现
-def yolo_res_block(inputs, in_channels, res_num):
+def yolo_res_block(inputs, in_channels, res_num, double_ch=False):
     '''
     yolo的残差模块实现
     inputs:输入
     res_num:一共 res_num 个 1,3,s(残差) 模块
     '''
+    out_channels = in_channels
+    if double_ch:
+        out_channels = in_channels * 2
+
     # 3,1,r,1模块儿
-    route = conv(inputs, in_channels*2, stride=2)
-    net = conv(route, in_channels, kernel_size=1)
-    route = conv(route, in_channels, kernel_size=1)
+    route = conv(inputs, in_channels*2, stride=2)            
+    net = conv(route, out_channels, kernel_size=1)     # in_channels
+    route = conv(route, out_channels, kernel_size=1)# in_channels
     
     # 1,3,s模块儿
     for _ in range(res_num):
         tmp = net
         net = conv(net, in_channels, kernel_size=1)
-        net = conv(net, in_channels)
+        net = conv(net, out_channels)                                  # in_channels
         # 相加:shortcut 层
         net = tmp + net
 
     # 1,r,1模块儿
-    net = conv(net, in_channels, kernel_size=1)
+    net = conv(net, out_channels, kernel_size=1)       # in_channels
     # 拼接:route 层
     net = tf.concat([net, route], -1)
     net = conv(net, in_channels*2, kernel_size=1)
@@ -77,7 +81,7 @@ def yolo_conv_block(net,in_channels, a, b):
     for _ in range(a):
         out_channels = in_channels / 2
         net = conv(net, out_channels, kernel_size=1)
-        net = conv(net, out_channels*2)
+        net = conv(net, in_channels)
     
     out_channels = in_channels
     for _ in range(b):
@@ -103,7 +107,7 @@ def yolo_maxpool_block(inputs):
 # 上采样模块儿
 def yolo_upsample_block(inputs, in_channels, route):
     '''
-    上采样模块儿
+    上采样模块儿, 宽高加倍
     inputs:主干输入
     route:以前的特征
     '''
@@ -122,31 +126,32 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
     inputs:[N, 416, 416, 3]
     后面再把每个网络给分出来
     '''
-    # ########## MISH 激活 ##########
+    # ########## 下采样模块儿 ##########
     with slim.arg_scope([slim.conv2d], 
                             normalizer_fn=slim.batch_norm,
                             normalizer_params=batch_norm_params,
                             biases_initializer=None,
                             activation_fn=lambda x: Activation.activation_fn(x, act.MISH),
                             weights_regularizer=slim.l2_regularizer(weight_decay)):
-        with tf.variable_scope('mish'):
+        with tf.variable_scope('Downsample'):
             net = conv(inputs, 32)
+            # downsample
             # res1
-            net = yolo_res_block(net, 32, 1)
+            net = yolo_res_block(net, 32, 1, double_ch=True)    # *2
             # res2
-            net = yolo_res_block(net, 64, 2)
+            net = yolo_res_block(net, 64, 2)    # 不乘
             # res8
-            net = yolo_res_block(net, 128, 8)
+            net = yolo_res_block(net, 128, 8)   # 不乘
             # 第54层特征
             # [N, 76, 76, 256]
             up_route_54 = net
             # res8
-            net = yolo_res_block(net, 256, 8)
+            net = yolo_res_block(net, 256, 8)   # 不乘
             # 第85层特征
             # [N, 38, 38, 512]
             up_route_85 = net
             # res4
-            net = yolo_res_block(net, 512, 4)
+            net = yolo_res_block(net, 512, 4)   # 不乘
 
     # ########## leaky_relu 激活 ##########
     with slim.arg_scope([slim.conv2d], 
@@ -169,6 +174,7 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
 
             net = yolo_conv_block(net, 512, 0, 1)
             net = yolo_upsample_block(net, 256, up_route_85)
+
             net = yolo_conv_block(net, 512, 2, 1)
             # 第126层特征，用作最后的特征拼接
             # [N, 38, 38, 256]
@@ -177,6 +183,7 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
             # [N, 38, 38, 256] => [N, 38, 38, 128]
             net = yolo_conv_block(net, 256, 0, 1)
             net = yolo_upsample_block(net, 128, up_route_54)
+            
             net = yolo_conv_block(net, 256, 2, 1)
             # 第136层特征, 用作最后的特征拼接
             # [N, 76, 76, 128]
