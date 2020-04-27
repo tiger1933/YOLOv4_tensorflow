@@ -133,6 +133,7 @@ dmypy.json
 /data/JPEGImages/*
 /data/yolov4.weights
 /yolo_weights/*
+! /yolo_weights/readme.txt
 /checkpoint/*
 /save/*
 /log/*
