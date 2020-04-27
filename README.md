@@ -35,6 +35,7 @@ the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
 <br/>
 权重转换是能够转换过来, 但是并不能跑出效果, 我确定全部权重都存放到了自己的项目中，排查了一天还是不知道哪里不对,我猜测是卷积层加载数据的顺序错了, 希望有同志能够帮忙解决这个问题, 谢谢了。<br/>
 i'm sure that the weights file convertion to the ckpt is successful, but maybe the order of conv layer in this code is different with the yolov4, i worked for this for a day, still have no idea about it, I hope comrades can give me some help, thanks.<br/>
+<br/>
 weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
 the weights_name.txt contains all model layer's name of the network <br/>
 <br/>
@@ -51,7 +52,6 @@ and then, go to the folder "./data", execute the following python command, it au
 ```
 python generate_labels.py
 ```
-<br/>
 继续执行命令,得到 anchor box<br/>
 excute the python command, to get anchor box
 ```
@@ -66,7 +66,7 @@ open config.py, write the anchor box to line 6, just like this<br/>
 all configuration parameters are in the config.py, you can modify them according to your actual situation<br/>
 <br/>
 配置完成,执行命令<br/>
-ok, that's all, execute the command<br/>
+ok, that's all, execute the command
 ```
 python train.py
 ```
