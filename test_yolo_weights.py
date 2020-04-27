@@ -14,7 +14,6 @@ from utils import tools
 from src.YOLO import YOLO
 import cv2
 import numpy as np
-from src import Log
 import os
 from os import path
 import time
@@ -45,7 +44,6 @@ def save_img(img, name):
     name:保存的图片名
     '''
     if not path.isdir(config.save_dir):
-        Log.add_log("message:创建文件夹'"+str(config.save_dir)+"'")
         os.mkdir(config.save_dir)
     img_name = path.join(config.save_dir, name)
     cv2.imwrite(img_name, img)
@@ -53,11 +51,12 @@ def save_img(img, name):
 
 
 def main():
-    yolo = YOLO(config.class_num, config.anchors)
+    anchors = 12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401
+    yolo = YOLO(80, anchors)
 
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, None, None, 3])
     feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, isTrain=False)
-    pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, config.class_num, 
+    pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, 80, 
                                                                                                 score_thresh=config.score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
     # 初始化
@@ -66,24 +65,23 @@ def main():
     saver = tf.train.Saver()
     with tf.compat.v1.Session() as sess:
         sess.run(init)
-        ckpt = tf.compat.v1.train.get_checkpoint_state(config.model_path)
+        ckpt = tf.compat.v1.train.get_checkpoint_state("./yolo_weights")
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            Log.add_log("message:存在 ckpt 模型:'"+str(ckpt.model_checkpoint_path)+"'")
         else:
-            Log.add_log("message:不存在 ckpt 模型")
-            # exit(1)
+            exit(1)
 
         # 名字字典
-        word_dict = tools.get_word_dict(config.name_file)
+        word_dict = tools.get_word_dict("./data/coco.names")
         # 色表
-        color_table = tools.get_color_table(config.class_num)
+        color_table = tools.get_color_table(80)
 
-        width = config.width
-        height = config.height
+        width = 608
+        height = 608
         
-        for name in os.listdir(config.val_dir):
-            img_name = path.join(config.val_dir, name)
+        val_dir = "./coco_test_img"
+        for name in os.listdir(val_dir):
+            img_name = path.join(val_dir, name)
             if not path.isfile(img_name):
                 print("'%s'不是图片" %img_name)
                 continue
@@ -92,7 +90,7 @@ def main():
 
             img, img_ori = read_img(img_name, width, height)
             if img is None:
-                Log.add_log("message:'"+str(img)+"'图片读取错误")
+                continue
             boxes, score, label = sess.run([pre_boxes, pre_score, pre_label], feed_dict={inputs:img})
             
             end = time.perf_counter()
@@ -103,9 +101,7 @@ def main():
             cv2.imshow('img', img_ori)
             cv2.waitKey(0)
 
-            if config.save_img:
-                save_img(img_ori, name)
+            save_img(img_ori, name)
 
 if __name__ == "__main__":
-    Log.add_log("message:进入 val.main() 函数")
     main()

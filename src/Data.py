@@ -40,7 +40,7 @@ class Data():
         # init labels path
         for img in self.imgs_path:
             label_path = img.replace("JPEGImages", "labels")
-            label_path = label_path.replace("jpg", "txt")
+            label_path = label_path.replace(img.split('.')[-1], "txt")
             self.labels_path.append(label_path)
         Log.add_log("message:数据路径初始化完成")
         

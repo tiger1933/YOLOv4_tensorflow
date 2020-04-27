@@ -139,19 +139,19 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
             # res1
             net = yolo_res_block(net, 32, 1, double_ch=True)    # *2
             # res2
-            net = yolo_res_block(net, 64, 2)    # 不乘
+            net = yolo_res_block(net, 64, 2)
             # res8
-            net = yolo_res_block(net, 128, 8)   # 不乘
+            net = yolo_res_block(net, 128, 8)
             # 第54层特征
             # [N, 76, 76, 256]
             up_route_54 = net
             # res8
-            net = yolo_res_block(net, 256, 8)   # 不乘
+            net = yolo_res_block(net, 256, 8)
             # 第85层特征
             # [N, 38, 38, 512]
             up_route_85 = net
             # res4
-            net = yolo_res_block(net, 512, 4)   # 不乘
+            net = yolo_res_block(net, 512, 4)
 
     # ########## leaky_relu 激活 ##########
     with slim.arg_scope([slim.conv2d], 
@@ -183,7 +183,7 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
             # [N, 38, 38, 256] => [N, 38, 38, 128]
             net = yolo_conv_block(net, 256, 0, 1)
             net = yolo_upsample_block(net, 128, up_route_54)
-            
+
             net = yolo_conv_block(net, 256, 2, 1)
             # 第136层特征, 用作最后的特征拼接
             # [N, 76, 76, 128]

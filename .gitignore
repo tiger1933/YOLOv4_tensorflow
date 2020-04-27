@@ -129,10 +129,11 @@ dmypy.json
 .pyre/
 
 # add by rdc
-/data/*
-data/*.txt
+/data/labels/*
+/data/JPEGImages/*
+/data/yolov4.weights
+/yolo_weights/*
 /checkpoint/*
 /save/*
-/test_pic/*
 /log/*
 yolov4.pdf
