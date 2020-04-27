@@ -37,6 +37,7 @@ the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
 i'm sure that the weights file convertion to the ckpt is successful, but maybe the order of conv layer in this code is different with the yolov4, i worked for this for a day, still have no idea about it, I hope comrades can give me some help, thanks.<br/>
 weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
 the weights_name.txt contains all model layer's name of the network <br/>
+<br/>
 还有很多策略没有实现，以后会慢慢更新</br>
 there are many strategies that have not been implemented, and will be updated slowly in the future.
 
