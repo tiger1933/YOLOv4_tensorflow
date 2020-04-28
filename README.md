@@ -77,6 +77,16 @@ ok, that's all, execute the command
 python train.py
 ```
 <br/>
+训练完成后,将测试图片放到 test_pic 文件夹下,执行命令<br/>
+put test images into test_pic folder, and run the following command after the model training.<br/>
+
+```
+python val.py
+```
+<br/>
+这是我用54张图片训练了 2000 步(十分钟)的结果，效果还不错<br/>
+this image is the result of training 2000 steps (10 minutes) with 54 pictures, it looks not bad. <br/>
+![avatar](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
 ### 有关 config.py 和训练的提示
 ### some tips with config.py and train the model
