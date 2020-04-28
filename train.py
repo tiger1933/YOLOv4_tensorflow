@@ -71,8 +71,9 @@ def backward():
 
     global_step = tf.Variable(0, trainable=False)
     
-    # 损失
-    loss = yolo.get_loss(feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, config.use_iou, config.ignore_thresh)
+    # 损失 yolov4
+    loss = yolo.get_loss_v4(feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, 
+                                                        config.cls_normalizer, config.ignore_thresh, config.prob_thresh, config.score_thresh)
     l2_loss = tf.compat.v1.losses.get_regularization_loss()
     
     epoch = compute_curr_epoch(global_step, config.batch_size, len(data.imgs_path))

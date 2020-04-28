@@ -171,6 +171,19 @@ class YOLO():
         low_iou_mask = low_iou_mask.stack()
         return low_iou_mask
 
+    # 得到预测物体概率低的地方的掩码
+    def __get_low_prob_mask(self, prob, prob_thresh=0.25):
+        '''
+        prob:[batch_size, 13, 13, 3, class_num]
+        prob_thresh:物体概率预测的阈值
+        return: bool [batch_size, 13, 13, 3, 1]
+        全部预测物体概率小于阈值的 mask
+        '''
+        # [batch_size, 13, 13, 3, 1]
+        max_prob = tf.reduce_max(prob, axis=-1, keepdims=True)
+        low_prob_mask = max_prob < prob_thresh        
+        return low_prob_mask
+
     # 对预测值进行解码
     def __decode_feature(self, yi_pred, curr_anchors):
         '''
@@ -209,7 +222,7 @@ class YOLO():
 
         return xy, wh, conf, prob
 
-    # 计算损失
+    # 计算损失, yolov3
     def __compute_loss_v3(self, xy, wh, conf, prob, yi_true, low_iou_mask):
         '''
         xy:[batch_size, 13, 13, 3, 2]
@@ -271,7 +284,109 @@ class YOLO():
         loss_total = xy_loss + wh_loss + conf_loss + class_loss
         return loss_total
         
-    # 获得损失
+    # 计算损失, yolov4
+    def __compute_loss_v4(self, xy, wh, conf, prob, yi_true, cls_normalizer=1.0, ignore_thresh=0.5, prob_thresh=0.25, score_thresh=0.25):
+        '''
+        xy:[batch_size, 13, 13, 3, 2]
+        wh:[batch_size, 13, 13, 3, 2]
+        conf:[batch_size, 13, 13, 3, 1]
+        prob:[batch_size, 13, 13, 3, class_num]
+        yi_true:[batch_size, 13, 13, 3, class_num]
+        cls_normalizer:置信度损失参数
+        ignore_thresh:与真值iou阈值
+        prob_thresh:最低分类概率阈值
+        score_thresh:最低分类得分阈值
+        return: 总的损失
+
+        loss_total:总的损失
+        xy_loss:中心坐标损失
+        wh_loss:宽高损失
+        conf_loss:置信度损失
+        class_loss:分类损失
+        '''
+        # 得到与真值 iou 低的地方 mask
+        low_iou_mask = self.__get_low_iou_mask(xy, wh, yi_true, ignore_thresh=ignore_thresh)
+        # 得到物体预测概率很低的地方 mask
+        low_prob_mask = self.__get_low_prob_mask(prob, prob_thresh=prob_thresh)
+        
+        # iou低或者概率低的地方 mask
+        low_iou_prob_mask = tf.math.logical_or(low_iou_mask, low_prob_mask)
+        low_iou_prob_mask = tf.cast(low_iou_prob_mask, tf.float32)
+
+        # batch_size
+        N = tf.shape(xy)[0]
+        N = tf.cast(N, tf.float32)
+
+        # iou低或者概率低的地方,损失系数
+        # [batch_size, 13, 13, 3, 1]
+        conf_scale = wh[..., 0:1] * wh[..., 1:2]
+        conf_scale = tf.where(tf.math.greater(conf_scale, 0),
+                                                        tf.math.sqrt(conf_scale), conf_scale)
+        conf_scale = conf_scale * cls_normalizer                                                        
+        conf_scale = tf.math.square(conf_scale)
+
+        # [batch_size, 13, 13, 3, 1]
+        no_obj_mask = 1.0 - yi_true[..., 4:5]
+        conf_loss_no_obj = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                            labels=yi_true[:,:,:,:,4:5], logits=conf
+                                                            ) * conf_scale * no_obj_mask * low_iou_prob_mask
+
+        # [batch_size, 13, 13, 3, 1]
+        obj_mask = yi_true[..., 4:5]        
+        conf_loss_obj = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                            labels=yi_true[:,:,:,:,4:5], logits=conf
+                                                            ) * np.square(cls_normalizer) * obj_mask
+        
+        # 置信度损失
+        conf_loss = conf_loss_obj + conf_loss_no_obj
+        conf_loss = tf.reduce_sum(conf_loss) / N
+        
+        # 平衡系数
+        loss_scale = tf.square(2. - yi_true[..., 2:3] * yi_true[..., 3:4])
+
+        # TODO: ciou
+        # xy 损失
+        xy_loss = loss_scale * obj_mask * tf.square(yi_true[..., 0: 2] - xy)
+        xy_loss = tf.reduce_sum(xy_loss) / N
+
+        # wh 损失
+        wh_y_true = tf.where(condition=tf.equal(yi_true[..., 2:4], 0),
+                                        x=tf.ones_like(yi_true[..., 2: 4]), y=yi_true[..., 2: 4])
+        wh_y_pred = tf.where(condition=tf.equal(wh, 0),
+                                        x=tf.ones_like(wh), y=wh)
+        wh_y_true = tf.clip_by_value(wh_y_true, 1e-10, 1e10)
+        wh_y_pred = tf.clip_by_value(wh_y_pred, 1e-10, 1e10)
+        wh_y_true = tf.math.log(wh_y_true)
+        wh_y_pred = tf.math.log(wh_y_pred)
+
+        wh_loss = loss_scale * obj_mask * tf.square(wh_y_true - wh_y_pred)
+        wh_loss = tf.reduce_sum(wh_loss) / N
+
+        # prob 损失
+        # 分类得分
+        # [batch_size, 13, 13, 3, class_num]
+        prob_score = prob * conf
+        # 得到得分大于阈值的区域
+        high_score_mask = prob_score > score_thresh
+        high_score_mask = tf.cast(high_score_mask, tf.float32)
+        # iou低,概率低,没物体, 分类分数高
+        class_loss_no_obj = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                        labels=yi_true[...,5:5+self.class_num],
+                                                        logits=prob 
+                                                    ) * low_iou_prob_mask * no_obj_mask * high_score_mask
+        
+        class_loss_obj = tf.nn.sigmoid_cross_entropy_with_logits(
+                                                        labels=yi_true[...,5:5+self.class_num],
+                                                        logits=prob
+                                                    ) * obj_mask
+
+        class_loss = class_loss_no_obj + class_loss_obj        
+        class_loss = tf.reduce_sum(class_loss) / N
+
+        loss_total = xy_loss + wh_loss + conf_loss + class_loss
+        return loss_total
+
+    # 获得损失 yolov3
     def get_loss(self, feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, use_iou=True, ignore_thresh=0.5):
         '''
         feature_y1:[batch_size, 13, 13, 3*(5+class_num)]
@@ -298,6 +413,40 @@ class YOLO():
         loss_y3 = self.__compute_loss_v3(xy, wh, conf, prob, y3_true, low_iou_mask_y3)
 
         return loss_y1 + loss_y2 + loss_y3
+
+
+    # 获得损失 yolov4
+    def get_loss_v4(self, feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, cls_normalizer=1.0, ignore_thresh=0.5, prob_thresh=0.25, score_thresh=0.25):
+        '''
+        feature_y1:[batch_size, 13, 13, 3*(5+class_num)]
+        feature_y2:[batch_size, 26, 26, 3*(5+class_num)]
+        feature_y3:[batch_size, 52, 52, 3*(5+class_num)]
+        y1_true: y1尺度的
+        y2_true: y2尺度的标签
+        y3_true: y3尺度的标签
+        cls_normalizer:分类损失系数
+        ignore_thresh:与真值 iou 阈值
+        prob_thresh:分类概率最小值
+        score_thresh:分类得分最小值
+        return:total_loss
+        '''
+        # y1
+        xy, wh, conf, prob = self.__decode_feature(feature_y1, self.anchors[2])
+        loss_y1 = self.__compute_loss_v4(xy, wh, conf, prob, y1_true, cls_normalizer=1.0, 
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+
+        # y2
+        xy, wh, conf, prob = self.__decode_feature(feature_y2, self.anchors[1])
+        loss_y2 = self.__compute_loss_v4(xy, wh, conf, prob, y2_true, cls_normalizer=1.0, 
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+
+        # y3
+        xy, wh, conf, prob = self.__decode_feature(feature_y3, self.anchors[0])
+        loss_y3 = self.__compute_loss_v4(xy, wh, conf, prob, y3_true, cls_normalizer=1.0, 
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+
+        return loss_y1 + loss_y2 + loss_y3
+
 
     # 非极大值抑制
     def __nms(self, boxes, scores, num_classes, max_boxes=50, score_thresh=0.5, iou_threshold=0.5):

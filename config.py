@@ -21,7 +21,10 @@ total_epoch = 300       # 一共训练多少 epoch
 save_step = 1000        # 多少步保存一次
 
 use_iou = True      # 计算损失时, 以iou作为衡量标准, 否则用 giou
+cls_normalizer = 1.0    # 置信度损失系数
 ignore_thresh = 0.5     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
+prob_thresh = 0.25      # 分类概率的阈值
+score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
 lr_init = 2e-4                      # 初始学习率	# 0.00261

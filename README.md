@@ -24,6 +24,7 @@ if have no error, it's ok
 参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中
 执行命令<br/>
 refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.<br/>
+<br/>
 将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令<br/>
 put yolov4.weights into the "yolo_weights" folder, and run the command.
 ```
@@ -40,7 +41,10 @@ weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
 the weights_name.txt contains all model layer's name of the network <br/>
 <br/>
 还有很多策略没有实现，以后会慢慢更新</br>
-there are many strategies that have not been implemented, and will be updated slowly in the future.
+there are many strategies that have not been implemented, and will be updated slowly in the future.</br>
+正在完成 ciou_loss 的计算</br>
+maybe i can implement ciou_loss function tomorrow</br>
+
 
 ### 训练自己的数据集
 ### train with own dataset
@@ -70,6 +74,7 @@ ok, that's all, execute the command
 ```
 python train.py
 ```
+<br/>
 
 ### 有关 config.py 和训练的提示
 ### some tips with config.py and train the model
@@ -81,10 +86,13 @@ learning rate do not set too large<br/>
 
 ### 自己的设备
 ### my device
-GPU : 1660ti (华硕猛禽)<br/>
+GPU : 1660ti (华硕猛禽) 6G<br/>
 CPU : i5 9400f<br/>
 mem : 16GB<br/>
 os  : ubuntu 18.04<br/>
 cuda: 10.2<br/>
 cudnn : 7<br/>
-
+python : 3.6.9<br/>
+tensorflow-gpu:1.14.0<br/>
+numpy : 1.18.1<br/>
+opencv-python : 4.1.2.30<br/>
