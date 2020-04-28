@@ -41,7 +41,7 @@ momentum = 0.949          # 动量
 
 # ############## 测试 ##############
 score_thresh = 0.5      # 少于这个分数就忽略
-iou_thresh = 0.5            # iou 大于这个值就认为是同一个物体
+iou_thresh = 0.3            # iou 大于这个值就认为是同一个物体
 max_box = 50                # 物体最多个数
 val_dir = "./test_pic"  # 测试文件夹, 里面存放测试图片
 save_img = True             # 是否保存测试图片

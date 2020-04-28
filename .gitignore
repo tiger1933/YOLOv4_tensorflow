@@ -131,10 +131,12 @@ dmypy.json
 # add by rdc
 /data/labels/*
 /data/JPEGImages/*
+/test_pic/*
 /data/yolov4.weights
 /yolo_weights/*
 !/yolo_weights/readme.txt
 /checkpoint/*
 /save/*
+!save/62.jpg
 /log/*
 yolov4.pdf

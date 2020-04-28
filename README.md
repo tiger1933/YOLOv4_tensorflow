@@ -42,6 +42,7 @@ the weights_name.txt contains all model layer's name of the network <br/>
 <br/>
 还有很多策略没有实现，以后会慢慢更新</br>
 there are many strategies that have not been implemented, and will be updated slowly in the future.</br>
+<br/>
 正在完成 ciou_loss 的计算</br>
 maybe i can implement ciou_loss function tomorrow</br>
 
@@ -71,6 +72,7 @@ all configuration parameters are in the config.py, you can modify them according
 <br/>
 配置完成,执行命令<br/>
 ok, that's all, execute the command
+
 ```
 python train.py
 ```
