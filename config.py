@@ -27,21 +27,21 @@ prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
-lr_init = 2e-4                      # 初始学习率	# 0.00261
-lr_lower = 1e-6                 # 最低学习率
+lr_init = 2e-4                      # 初始学习率	# 
+lr_lower =1e-6                  # 最低学习率    
 lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
-piecewise_boundaries = [10, 30]   # 单位:epoch, for piecewise
-piecewise_values = [lr_init, 5e-4, 1e-5]
+piecewise_boundaries = [10, 50]   # 单位:epoch, for piecewise
+piecewise_values = [2e-4, 5e-4, 1e-5]
 
 # 优化器配置
 optimizer_type = 'momentum' # 优化器类型
 momentum = 0.949          # 动量
-
+weight_decay = 0.0005
 
 
 # ############## 测试 ##############
 score_thresh = 0.5      # 少于这个分数就忽略
-iou_thresh = 0.3            # iou 大于这个值就认为是同一个物体
+iou_thresh = 0.2            # iou 大于这个值就认为是同一个物体
 max_box = 50                # 物体最多个数
 val_dir = "./test_pic"  # 测试文件夹, 里面存放测试图片
 save_img = True             # 是否保存测试图片

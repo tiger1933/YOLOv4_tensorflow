@@ -97,9 +97,9 @@ def yolo_maxpool_block(inputs):
     inputs:[N, 19, 19, 512]
     return:[N, 19, 19, 2048]
     '''
-    max_5 = tf.nn.max_pool(inputs, 5, [1,1,1,1], 'SAME')
-    max_9 = tf.nn.max_pool(inputs, 9, [1,1,1,1], 'SAME')
-    max_13 = tf.nn.max_pool(inputs, 13, [1,1,1,1], 'SAME')
+    max_5 = tf.nn.max_pool(inputs, [1, 5, 5, 1], [1, 1, 1, 1], 'SAME')
+    max_9 = tf.nn.max_pool(inputs, [1, 9, 9, 1], [1, 1, 1, 1], 'SAME')
+    max_13 = tf.nn.max_pool(inputs, [1, 13, 13, 1], [1, 1, 1, 1], 'SAME')
     # 拼接
     inputs = tf.concat([max_13, max_9, max_5, inputs], -1)
     return inputs

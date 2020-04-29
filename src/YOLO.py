@@ -77,11 +77,7 @@ class YOLO():
         '''
             pre_xy : [13, 13, 3, 2]
             pre_wh : [13, 13, 3, 2]
-            batch_yi_true : [13, 13, 3, 5 + class_num] or [13, 13, 3, 4]
-            但是 shape 可以在前面加一个 batch，即以下的 shape 也是可以的, 相应的 shape 也要加一个 batch_size
-            pre_xy : [batch_size, 13, 13, 3, 2]
-            pre_wh : [batch_size, 13, 13, 3, 2]
-            batch_yi_true : [batch_size, 13, 13, 3, 5 + class_num] or [batch_size, 13, 13, 3, 4]
+            valid_yi_true : [V, 5 + class_num] or [V, 4]
             return:
                 iou, giou : [13, 13, 3, V], V表示V个真值
         '''
@@ -125,6 +121,198 @@ class YOLO():
         giou = (intersection_area+1e-10) / combine_area # 加上一个很小的数字，确保 giou 存在
         
         return iou, giou
+
+    # 计算 CIOU 损失
+    def __get_CIOU_loss(self, pre_xy, pre_wh, yi_box):
+        '''
+        the formula of CIOU_LOSS is refers to http://bbs.cvmart.net/topics/1436
+        the implement of this function is refers to yolov4 -> box.c -> dx_box_iou function
+        计算每一个 box 与真值的 ciou 损失
+        pre_xy:[batch_size, 13, 13, 3, 2]
+        pre_wh:[batch_size, 13, 13, 3, 2]
+        yi_box:[batch_size, 13, 13, 3, 4]
+        return:[batch_size, 13, 13, 3, 4]
+        '''
+        # [batch_size, 13, 13, 3, 2]
+        yi_true_xy = yi_box[..., 0:2]
+        yi_true_wh = yi_box[..., 2:4]
+
+        pre_lt = pre_xy - pre_wh/2
+        pre_rb = pre_xy + pre_wh/2
+        truth_lt = yi_true_xy - yi_true_wh / 2
+        truth_rb = yi_true_xy + yi_true_wh / 2
+
+        # 相交区域坐标 : [batch_size, 13, 13, 3,2]
+        intersection_left_top = tf.maximum(pre_lt, truth_lt)
+        intersection_right_bottom = tf.minimum(pre_rb, truth_rb)
+        # 相交区域宽高 : [batch_size, 13, 13, 3, 2]
+        intersection_wh = tf.maximum(intersection_right_bottom - intersection_left_top, 0.0)
+        lw = intersection_wh[..., 0:1]
+        lh = intersection_wh[..., 1:2]
+        # 相交区域面积 : [batch_size, 13, 13, 3, 1]
+        intersection_area = intersection_wh[..., 0:1] * intersection_wh[..., 1:2]
+        # 并集区域左上角坐标 
+        combine_left_top = tf.minimum(pre_lt, truth_lt)
+        # 并集区域右下角坐标
+        combine_right_bottom = tf.maximum(pre_rb, truth_rb)
+        # 并集区域宽高 : 这里其实不用 tf.max 也可以，因为右下坐标一定大于左上
+        combine_wh = tf.maximum(combine_right_bottom - combine_left_top, 0.0)
+        # giou_Ch = combine_wh[..., 1:2]
+        # giou_Cw = combine_wh[..., 0:1]
+
+        # box面积 : [batch_size, 13, 13, 3, 1]
+        pre_area = pre_wh[..., 0:1] * pre_wh[..., 1:2]
+        true_area = yi_true_wh[..., 0:1] * yi_true_wh[..., 1:2]
+        # 并集区域面积 : [batch_size, 13, 13, 3, 1]
+        combine_area = combine_wh[..., 0:1] * combine_wh[..., 1:2]
+
+        # iou : [batch_size, 13, 13, 3, 1]
+        iou = intersection_area / (pre_area + true_area - intersection_area)
+        U = pre_area + true_area - intersection_area
+
+        # giou : [batch_size, 13, 13, 3, 1]
+        giou = (intersection_area+1e-10) / combine_area
+
+        dX_wrt_t = -1 * (pre_rb[..., 0:1] - pre_lt[..., 0:1])
+        dX_wrt_b = pre_rb[..., 0:1] - pre_lt[..., 0:1]
+        dX_wrt_l = -1 * (pre_rb[..., 1:2] - pre_lt[..., 1:2])
+        dX_wrt_r = pre_rb[..., 1:2] - pre_lt[..., 1:2]
+
+        dI_wrt_t = tf.where(tf.math.greater(pre_lt[..., 1:2], truth_lt[..., 1:2]),
+                                                    -1 * lw, tf.zeros_like(truth_lt[..., 1:2]))
+        dI_wrt_b = tf.where(tf.math.less(pre_rb[..., 1:2], truth_rb[..., 1:2]),
+                                                    lw, tf.zeros_like(truth_rb[..., 1:2]))
+        dI_wrt_l = tf.where(tf.math.greater(pre_lt[..., 0:1], truth_lt[..., 0:1]),
+                                                    -1 * lh, tf.zeros_like(truth_lt[..., 0:1]))
+        dI_wrt_r = tf.where(tf.math.less(pre_rb[..., 0:1], truth_rb[..., 0:1]),
+                                                    lh, tf.zeros_like(truth_rb[..., 0:1]))
+
+        dU_wrt_t = dX_wrt_t - dI_wrt_t
+        dU_wrt_b = dX_wrt_b - dI_wrt_b
+        dU_wrt_l = dX_wrt_l - dI_wrt_l
+        dU_wrt_r = dX_wrt_r - dI_wrt_r
+
+        # dC_wrt_t = tf.where(tf.math.less(pre_lt[..., 1:2], truth_lt[..., 1:2]),
+        #                                             -1 * giou_Cw, tf.zeros_like(truth_lt[..., 1:2]))
+        # dC_wrt_b = tf.where(tf.math.greater(pre_rb[..., 1:2], truth_rb[..., 1:2]),
+        #                                             giou_Cw, tf.zeros_like(truth_rb[..., 1:2]))
+        # dC_wrt_l = tf.where(tf.less(pre_lt[..., 0:1], truth_lt[..., 0:1]),
+        #                                             -1 * giou_Ch, tf.zeros_like(truth_lt[..., 0:1]))
+        # dC_wrt_r = tf.where(tf.math.greater(pre_rb[..., 0:1], truth_rb[..., 0:1]),
+        #                                             giou_Ch, tf.zeros_like(truth_rb[..., 0:1]))
+        
+        p_dt = ((U * dI_wrt_t) - (intersection_area * dU_wrt_t)) / (U * U)
+        p_db = ((U * dI_wrt_b) - (intersection_area * dU_wrt_b)) / (U * U)
+        p_dl = ((U * dI_wrt_l) - (intersection_area * dU_wrt_l)) / (U * U)
+        p_dr = ((U * dI_wrt_r) - (intersection_area * dU_wrt_r)) / (U * U)
+
+        p_dt = tf.where(tf.math.less(pre_lt[..., 1:2], pre_rb[..., 1:2]),
+                                            p_dt, p_db)
+        p_db = tf.where(tf.math.less(pre_lt[..., 1:2], pre_rb[..., 1:2]),
+                                            p_db, p_dt)
+        p_dl = tf.where(tf.math.less(pre_lt[..., 0:1], pre_rb[..., 0:1]),
+                                            p_dl, p_dr)
+        p_dr = tf.where(tf.math.less(pre_lt[..., 0:1], pre_rb[..., 0:1]),
+                                            p_dr, p_dl)
+
+        loss_x = p_dl + p_dr
+        loss_y = p_dt + p_db
+        loss_w = p_dr - p_dl
+        loss_h = p_db - p_dt
+
+        # 中心点距离
+        # [batch_size, 13, 13, 3, 2]
+        dx_dy = pre_xy - yi_true_xy
+        # [batch_size, 13, 13, 3, 1]
+        S = tf.square(dx_dy[..., 0:1]) + tf.square(dx_dy[..., 1:2])
+
+        # 外围框距离
+        # [batch_size, 13, 13, 3, 2]
+        cx_cy = combine_right_bottom - combine_left_top
+        Cw = cx_cy[..., 0:1]
+        Ch = cx_cy[..., 1:2]
+        # [batch_size, 13, 13, 3, 1]
+        C = tf.square(Cw) * tf.square(Ch)
+
+        dCw_dy = 0.0 
+        dCh_dx = 0.0   
+        dCh_dw = 0.0  
+        dCw_dh = 0.0
+
+        dCr_dx = tf.where(tf.math.greater(pre_rb[..., 0:1], truth_rb[..., 0:1]),
+                                                tf.ones_like(pre_rb[..., 0:1]), 
+                                                tf.zeros_like(truth_rb[..., 0:1]))
+        dCl_dx = tf.where(tf.math.less(pre_lt[..., 0:1], truth_lt[..., 0:1]),
+                                                tf.ones_like(pre_lt[..., 0:1]),
+                                                tf.zeros_like(truth_lt[..., 0:1]))                                                
+        dCw_dx = dCr_dx - dCl_dx
+
+        dCb_dy = tf.where(tf.math.greater(pre_rb[..., 1:2], truth_rb[..., 1:2]),
+                                                tf.ones_like(pre_rb[..., 1:2]),
+                                                tf.zeros_like(truth_rb[..., 1:2]))
+        dCt_dy = tf.where(tf.math.less(pre_lt[..., 1:2], truth_lt[..., 1:2]),
+                                                tf.ones_like(pre_lt[..., 1:2]),
+                                                tf.zeros_like(truth_lt[..., 1:2]))
+        dCh_dy = dCb_dy - dCt_dy
+
+        dCb_dh = dCb_dy / 2.0
+        dCt_dh = dCt_dy / (-2.0)
+        dCh_dh = dCb_dh - dCt_dh
+
+        dCr_dw = dCr_dx / 2.0
+        dCl_dw = dCl_dx / (-2.0)
+        dCw_dw = dCr_dw - dCl_dw
+
+        pi = 3.14159265358979323846
+
+        ar_gt = yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2]
+        ar_pred = pre_wh[...,0:1] / pre_wh[..., 1:2]
+        ar_loss = 4 / (pi * pi) * tf.square( tf.math.atan(ar_gt) - tf.math.atan(ar_pred) )
+        alpha = ar_loss / (1.0 - iou + ar_loss + 1e-10) # iou:I/U
+        ar_dh_dw = 8 / (pi*pi) * (
+                                tf.math.atan(ar_gt) - tf.math.atan(ar_pred)
+                            ) * pre_wh
+        ar_dw = ar_dh_dw[..., 1:2]
+        ar_dh = ar_dh_dw[..., 0:1]
+
+        loss_x = tf.where(tf.math.greater(C, 0.0),
+                loss_x + (2*(yi_true_xy[..., 0:1] - pre_xy[..., 0:1])*C-(2*Cw*dCw_dx+2*Ch*dCh_dx)*S) / (C * C),
+                loss_x)
+        loss_y = tf.where(tf.math.greater(C, 0.0),
+                loss_y + (2*(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])*C-(2*Cw*dCw_dy+2*Ch*dCh_dy)*S) / (C * C),
+                loss_y)
+        loss_w = tf.where(tf.math.greater(C, 0.0),
+                loss_w + (2*Cw*dCw_dw+2*Ch*dCh_dw)*S / (C * C) + alpha * ar_dw,
+                loss_w)
+        loss_h = tf.where(tf.greater(C, 0.0),
+                loss_h + (2*Cw*dCw_dh+2*Ch*dCh_dh)*S / (C * C) + alpha * ar_dh,
+                loss_h)
+
+        # loss_x += (2*(yi_true_xy[..., 0:1] - pre_xy[..., 0:1])*C-(2*Cw*dCw_dx+2*Ch*dCh_dx)*S) / (C * C)
+        # loss_y += (2*(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])*C-(2*Cw*dCw_dy+2*Ch*dCh_dy)*S) / (C * C)            
+        # loss_w += (2*Cw*dCw_dw+2*Ch*dCh_dw)*S / (C * C) + alpha * ar_dw
+        # loss_h += (2*Cw*dCw_dh+2*Ch*dCh_dh)*S / (C * C) + alpha * ar_dh
+
+        # [batch_size, 13, 13, 3, 4]
+        loss_xywh = tf.concat([loss_x, loss_y, loss_w, loss_h], -1)
+        return loss_xywh
+
+        '''
+        这是参考 http://bbs.cvmart.net/topics/1436 的公式写的
+        this formula of CIOU_LOSS is refer to http://bbs.cvmart.net/topics/1436
+        '''
+        # # 衡量长宽比一致性的参数
+        # # ar_loss
+        # v = 4 / (pi * pi) * tf.square( 
+        #                               tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2])
+        #                                - tf.math.atan(pre_wh[...,0:1] / pre_wh[..., 1:2]) )
+
+        # # trade-off 参数
+        # # alpha
+        # alpha = v / (1.0 - iou + v + 1e-10)
+        # ciou_loss = 1 - iou + d / C + alpha * v
+        # return ciou_loss
+
 
     # 得到低iou的地方
     def __get_low_iou_mask(self, pre_xy, pre_wh, yi_true, use_iou=True, ignore_thresh=0.5):
@@ -285,7 +473,8 @@ class YOLO():
         return loss_total
         
     # 计算损失, yolov4
-    def __compute_loss_v4(self, xy, wh, conf, prob, yi_true, cls_normalizer=1.0, ignore_thresh=0.5, prob_thresh=0.25, score_thresh=0.25):
+    def __compute_loss_v4(self, xy, wh, conf, prob, yi_true, cls_normalizer=1.0, ignore_thresh=0.5, 
+                                                                prob_thresh=0.25, score_thresh=0.25, iou_normalizer=0.07):
         '''
         xy:[batch_size, 13, 13, 3, 2]
         wh:[batch_size, 13, 13, 3, 2]
@@ -296,6 +485,7 @@ class YOLO():
         ignore_thresh:与真值iou阈值
         prob_thresh:最低分类概率阈值
         score_thresh:最低分类得分阈值
+        iou_normalizer:iou_loss 系数
         return: 总的损失
 
         loss_total:总的损失
@@ -340,11 +530,15 @@ class YOLO():
         # 置信度损失
         conf_loss = conf_loss_obj + conf_loss_no_obj
         conf_loss = tf.reduce_sum(conf_loss) / N
-        
+
+        '''
+        yolov3 的 xy,wh 损失计算
+        the xy_loss and wh_loss compute in yolov3
+        '''
+        # '''        
         # 平衡系数
         loss_scale = tf.square(2. - yi_true[..., 2:3] * yi_true[..., 3:4])
 
-        # TODO: ciou
         # xy 损失
         xy_loss = loss_scale * obj_mask * tf.square(yi_true[..., 0: 2] - xy)
         xy_loss = tf.reduce_sum(xy_loss) / N
@@ -361,6 +555,29 @@ class YOLO():
 
         wh_loss = loss_scale * obj_mask * tf.square(wh_y_true - wh_y_pred)
         wh_loss = tf.reduce_sum(wh_loss) / N
+        # '''
+        
+        '''
+         yolov4的 ciou 损失计算(失败)
+        the xy_loss and wh_loss compute in yolov4(i failed)
+        '''
+        '''
+        # xywh损失:CIOU loss
+        # avoid nan in ciou_loss
+        wh = tf.where(tf.equal(wh, 0.0), tf.ones_like(wh), wh)
+        # dt, db, dl, dr
+        xywh_loss = self.__get_CIOU_loss(xy, wh, yi_true[..., 0:4])
+        # predict exponential, apply gradient of e^delta_t ONLY for w,h
+        wh_loss = xywh_loss[..., 2:4] * wh
+        xy_loss = xywh_loss[..., 0:2]
+        # 修正无穷大无穷小
+        wh_loss = tf.clip_by_value(wh_loss, 1e-10, 1e10) * obj_mask * iou_normalizer
+        xy_loss = tf.clip_by_value(xy_loss, 1e-10, 1e10) * obj_mask * iou_normalizer
+        # 计算损失
+        xy_loss = tf.reduce_sum(xy_loss) / N
+        wh_loss = tf.reduce_sum(wh_loss) / N
+        # 平方
+        '''
 
         # prob 损失
         # 分类得分

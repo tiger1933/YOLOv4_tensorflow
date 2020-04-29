@@ -67,7 +67,7 @@ def backward():
     y2_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+config.class_num])
     y3_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+config.class_num])
     
-    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, batch_norm_decay=0.9, weight_decay=0.0005, isTrain=True)
+    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, weight_decay=config.weight_decay, isTrain=True)
 
     global_step = tf.Variable(0, trainable=False)
     

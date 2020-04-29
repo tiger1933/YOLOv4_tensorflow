@@ -43,9 +43,14 @@ the weights_name.txt contains all model layer's name of the network <br/>
 还有很多策略没有实现，以后会慢慢更新</br>
 there are many strategies that have not been implemented, and will be updated slowly in the future.</br>
 <br/>
-正在完成 ciou_loss 的计算</br>
-maybe i can implement ciou_loss function tomorrow</br>
 
+### CIOU损失进行训练失败
+### use CIOU_LOSS in our network failed
+YOLO.py -> __get_CIOU_loss 函数是计算 ciou 损失的函数,在这个函数的最后面注释部分是参考[这个链接](http://bbs.cvmart.net/topics/1436)做的,函数的主体部分是参考 darknetv4 中 box.c -> dx_box_iou 函数实现的</br>
+YOLO.py -> __get_CIOU_loss function is to compute ciou loss , and the comment section at the end of this function is refer to [this page](http://bbs.cvmart.net/topics/1436), others is refer to  box.c -> dx_box_iou function in darknetv4 </br>
+</br>
+在 YOLO.py -> __compute_loss_v4 函数中调用了损失的计算, 在第534 行是使用的yolov3的损失函数, 在第560行是使用的 CIOU_LOSS ,但是使用 CIOU_LOSS 的损失是 nan, 还在排查原因</br>
+in function of YOLO.py -> __compute_loss_v4 , called the loss compute function, and in line 534 is the loss function of yolov3 used, in line 560 is the loss function of CIOU_LOSS used, but the loss of using CIOU_LOSS is NAN, and the cause of the error  is still under research.
 
 ### 训练自己的数据集
 ### train with own dataset
