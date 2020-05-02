@@ -94,12 +94,12 @@ def draw_img(img, boxes, score, label, word_dict, color_table,):
     # 字体
     font = cv2.FONT_HERSHEY_SIMPLEX
     for i in range(len(boxes)):
+        boxes[i][0] = constrait(boxes[i][0], 0, 1)
+        boxes[i][1] = constrait(boxes[i][1], 0, 1)
+        boxes[i][2] = constrait(boxes[i][2], 0, 1)
+        boxes[i][3] = constrait(boxes[i][3], 0, 1)
         x_min, x_max = int(boxes[i][0] * w), int(boxes[i][2] * w)
         y_min, y_max = int(boxes[i][1] * h), int(boxes[i][3] * h)
-        x_min = constrait(x_min, 0, w)
-        y_min = constrait(y_min, 0, h)
-        x_max = constrait(x_max, 0, w)
-        y_max = constrait(y_max, 0, h)
         # 画框
         cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color_table[label[i]])
         # 写字

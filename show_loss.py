@@ -21,6 +21,11 @@ def decode_file(file_name):
     with open(file_name, 'r') as f:
         index = 0
         for line in f.readlines():
+            if '#' in line:
+                index = 0
+                sequence = []
+                loss = []
+                continue
             index += 1
             if index < min_index:
                 continue

@@ -620,10 +620,11 @@ class YOLO():
         giou_loss = self.__my_GIOU_loss(xy, wh, yi_true[..., 0:4])
         # giou_loss = self.__my_CIOU_loss(xy, wh, yi_true[..., 0:4])
         giou_loss = tf.clip_by_value(giou_loss, 1e-10, 1e10)
-        giou_loss = tf.square(giou_loss * obj_mask * iou_normalizer)
+        giou_loss = tf.square(giou_loss * obj_mask) * iou_normalizer
+        giou_loss = tf.reduce_sum(giou_loss) / N
 
         # xy 损失
-        xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy) + giou_loss
+        xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy)
         xy_loss = tf.reduce_sum(xy_loss) / N
 
         # wh 损失
@@ -636,7 +637,7 @@ class YOLO():
         wh_y_true = tf.math.log(wh_y_true)
         wh_y_pred = tf.math.log(wh_y_pred)
 
-        wh_loss = obj_mask * tf.square(wh_y_true - wh_y_pred) + giou_loss
+        wh_loss = obj_mask * tf.square(wh_y_true - wh_y_pred)
         wh_loss = tf.reduce_sum(wh_loss) / N
         
         # prob 损失
@@ -659,7 +660,7 @@ class YOLO():
         class_loss = class_loss_no_obj + class_loss_obj        
         class_loss = tf.reduce_sum(class_loss) / N
 
-        loss_total = xy_loss + wh_loss + conf_loss + class_loss
+        loss_total = xy_loss + wh_loss + conf_loss + class_loss + giou_loss
         # loss_total = giou_loss + conf_loss + class_loss
         return loss_total
 

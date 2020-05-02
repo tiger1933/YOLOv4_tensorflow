@@ -128,4 +128,5 @@ def backward():
 
 if __name__ == "__main__":
     Log.add_log("message:进入 backward 函数")
+    Log.add_loss("###########")
     backward()
