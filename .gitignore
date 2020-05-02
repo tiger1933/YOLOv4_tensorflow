@@ -137,6 +137,6 @@ dmypy.json
 !/yolo_weights/readme.txt
 /checkpoint/*
 /save/*
-#!save/62.jpg
+!save/60.jpg
 /log/*
 yolov4.pdf

@@ -99,7 +99,7 @@ def backward():
             saver.restore(sess, ckpt.model_checkpoint_path)
             step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
             step = eval(step)
-            Log.add_log("message:存在 ckpt 模型, global_ste=" + str(step))
+            Log.add_log("message:存在 ckpt 模型, global_step=" + str(step))
         else:
             Log.add_log("message:不存在 ckpt 模型")
         

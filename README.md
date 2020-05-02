@@ -34,8 +34,8 @@ python test_yolo_weights.py
 会在 yolo_weights 文件夹下生成权重文件<br/>
 the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
 <br/>
-权重转换是能够转换过来, 但是并不能跑出效果, 我确定全部权重都存放到了自己的项目中，排查了一天还是不知道哪里不对,我猜测是卷积层加载数据的顺序错了, 希望有同志能够帮忙解决这个问题, 谢谢了。<br/>
-i'm sure that the weights file convertion to the ckpt is successful, but maybe the order of conv layer in this code is different with the yolov4, i worked for this for a day, still have no idea about it, I hope comrades can give me some help, thanks.<br/>
+权重转换是能够转换过来, 但是并不能跑出效果, 我确定全部权重都存放到了自己的项目中，因为权重的数量都是 64429405 个，排查了一天还是不知道哪里不对,我猜测是卷积层加载数据的顺序错了, 希望有同志能够帮忙解决这个问题, 谢谢了。<br/>
+i'm sure that the weights file convertion to the ckpt is successful, because the number of both weights are 64429405, but maybe the order of conv layer in this code is different with the yolov4, i worked for this for a day, still have no idea about it, I hope comrades can give me some help, thanks.<br/>
 <br/>
 weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
 the weights_name.txt contains all model layer's name of the network <br/>
@@ -44,13 +44,17 @@ the weights_name.txt contains all model layer's name of the network <br/>
 there are many strategies that have not been implemented, and will be updated slowly in the future.</br>
 <br/>
 
-### CIOU损失进行训练失败
-### use CIOU_LOSS in our network failed
-YOLO.py -> __get_CIOU_loss 函数是计算 ciou 损失的函数,在这个函数的最后面注释部分是参考[这个链接](http://bbs.cvmart.net/topics/1436)做的,函数的主体部分是参考 darknetv4 中 box.c -> dx_box_iou 函数实现的</br>
-YOLO.py -> __get_CIOU_loss function is to compute ciou loss , and the comment section at the end of this function is refer to [this page](http://bbs.cvmart.net/topics/1436), others is refer to  box.c -> dx_box_iou function in darknetv4 </br>
+### GIOU 损失进行训练而不是 yolov4 的 CIOU 损失
+### use GIOU_LOSS in our network but CIOU_LOSS witch used in yolov4
+YOLO.py -> __get_CIOU_loss 函数是计算 ciou 损失的函数,函数的主体部分是参考 darknetv4 中 box.c -> dx_box_iou 函数实现的，但是损失值一直是 NAN，还在排查原因，目前暂无结论</br>
+YOLO.py -> __get_CIOU_loss function is to compute ciou loss , witch is refer to  src/box.c -> dx_box_iou function in darknetv4 , but the loss value has always been NAN, the cause of this error is still under research,  at present, there is no conclusion</br>
 </br>
-在 YOLO.py -> __compute_loss_v4 函数中调用了损失的计算, 在第534 行是使用的yolov3的损失函数, 在第560行是使用的 CIOU_LOSS ,但是使用 CIOU_LOSS 的损失是 nan, 还在排查原因</br>
-in function of YOLO.py -> __compute_loss_v4 , called the loss compute function, and in line 534 is the loss function of yolov3 used, in line 560 is the loss function of CIOU_LOSS used, but the loss of using CIOU_LOSS is NAN, and the cause of the error  is still under research.
+在 YOLO.py -> __compute_loss_v4 函数中调用了损失的计算, YOLO.py -> __my_CIOU_loss 函数和 __my_GIOU_loss 函数是参考[这个链接](http://bbs.cvmart.net/topics/1436)写的 CIOU 损失与 GIOU 损失的计算</br>
+in function of YOLO.py -> __compute_loss_v4 , called the loss compute function, the function of __my_CIOU_loss and __my_GIOU_loss in YOLO.py is to compute CIOU_LOSS and GIOU_LOSS respectively witch is refer to [this link](http://bbs.cvmart.net/topics/1436)</br>
+</br>
+使用 ciou_loss 经常性的出现损失 NAN 的问题，所以我使用 giou_loss 而不是原文的 ciou_loss。</br>
+when i use CIOU_LOSS in our network, the loss value often appears NAN, so i use GIOU_LOSS but CIOU_LOSS.</br>
+</br>
 
 ### 训练自己的数据集
 ### train with own dataset
@@ -91,15 +95,19 @@ python val.py
 <br/>
 这是我用54张图片训练了 2000 步(十分钟)的结果，效果还不错<br/>
 this image is the result of training 2000 steps (10 minutes) with 54 pictures, it looks not bad. <br/>
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/60.jpg)
 
 ### 有关 config.py 和训练的提示
 ### some tips with config.py and train the model
 config.py 中的 width 和 height 应该是 608，显存不够才调整为 416 的<br/>
 the parameters of width and height in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416<br/>
+<br/>
 学习率不宜设置太高<br/>
 learning rate do not set too large<br/>
 <br/>
+如果出现NAN的情况，请降低学习率</br>
+when the loss value is Nan, please lower your learning rate.
+</br>
 
 ### 自己的设备
 ### my device

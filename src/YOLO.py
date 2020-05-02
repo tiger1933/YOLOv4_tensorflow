@@ -123,6 +123,113 @@ class YOLO():
         return iou, giou
 
     # 计算 CIOU 损失
+    def __my_CIOU_loss(self, pre_xy, pre_wh, yi_box):
+        '''
+        the formula of CIOU_LOSS is refers to http://bbs.cvmart.net/topics/1436
+        计算每一个 box 与真值的 ciou 损失
+        pre_xy:[batch_size, 13, 13, 3, 2]
+        pre_wh:[batch_size, 13, 13, 3, 2]
+        yi_box:[batch_size, 13, 13, 3, 4]
+        return:[batch_size, 13, 13, 3, 1]
+        '''
+        # [batch_size, 13, 13, 3, 2]
+        yi_true_xy = yi_box[..., 0:2]
+        yi_true_wh = yi_box[..., 2:4]
+
+        # 上下左右
+        pre_lt = pre_xy - pre_wh/2
+        pre_rb = pre_xy + pre_wh/2
+        truth_lt = yi_true_xy - yi_true_wh / 2
+        truth_rb = yi_true_xy + yi_true_wh / 2
+
+        # 相交区域坐标 : [batch_size, 13, 13, 3,2]
+        intersection_left_top = tf.maximum(pre_lt, truth_lt)
+        intersection_right_bottom = tf.minimum(pre_rb, truth_rb)
+        # 相交区域宽高 : [batch_size, 13, 13, 3, 2]
+        intersection_wh = tf.maximum(intersection_right_bottom - intersection_left_top, 0.0)
+        # 相交区域面积 : [batch_size, 13, 13, 3, 1]
+        intersection_area = intersection_wh[..., 0:1] * intersection_wh[..., 1:2]
+        # 并集区域左上角坐标 
+        combine_left_top = tf.minimum(pre_lt, truth_lt)
+        # 并集区域右下角坐标
+        combine_right_bottom = tf.maximum(pre_rb, truth_rb)
+        # 并集区域宽高 : 这里其实不用 tf.max 也可以，因为右下坐标一定大于左上
+        combine_wh = tf.maximum(combine_right_bottom - combine_left_top, 0.0)
+
+        # 并集区域对角线 : [batch_size, 13, 13, 3, 1]
+        C = tf.square(combine_wh[..., 0:1]) + tf.square(combine_wh[..., 1:2])
+        # 中心点对角线:[batch_size, 13, 13, 3, 1]
+        D = tf.square(yi_true_xy[..., 0:1] - pre_xy[..., 0:1]) + tf.square(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])
+
+        # box面积 : [batch_size, 13, 13, 3, 1]
+        pre_area = pre_wh[..., 0:1] * pre_wh[..., 1:2]
+        true_area = yi_true_wh[..., 0:1] * yi_true_wh[..., 1:2]
+
+        # iou : [batch_size, 13, 13, 3, 1]
+        iou = intersection_area / (pre_area + true_area - intersection_area)
+
+        pi = 3.14159265358979323846
+
+        # 衡量长宽比一致性的参数:[batch_size, 13, 13, 3, 1]
+        v = 4 / (pi * pi) * tf.square( 
+                                      tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2])
+                                       - tf.math.atan(pre_wh[...,0:1] / pre_wh[..., 1:2]) )
+
+        # trade-off 参数
+        # alpha
+        alpha = v / (1.0 - iou + v)
+        # alpha = 1.0
+        ciou_loss = 1 - iou + D / C + alpha * v
+        return ciou_loss
+
+    # 计算 GIOU 损失
+    def __my_GIOU_loss(self, pre_xy, pre_wh, yi_box):
+        '''
+        the formula of GIOU_LOSS is refers to http://bbs.cvmart.net/topics/1436
+        计算每一个 box 与真值的 ciou 损失
+        pre_xy:[batch_size, 13, 13, 3, 2]
+        pre_wh:[batch_size, 13, 13, 3, 2]
+        yi_box:[batch_size, 13, 13, 3, 4]
+        return:[batch_size, 13, 13, 3, 1]
+        '''
+        # [batch_size, 13, 13, 3, 2]
+        yi_true_xy = yi_box[..., 0:2]
+        yi_true_wh = yi_box[..., 2:4]
+
+        # 上下左右
+        pre_lt = pre_xy - pre_wh/2
+        pre_rb = pre_xy + pre_wh/2
+        truth_lt = yi_true_xy - yi_true_wh / 2
+        truth_rb = yi_true_xy + yi_true_wh / 2
+
+        # 相交区域坐标 : [batch_size, 13, 13, 3,2]
+        intersection_left_top = tf.maximum(pre_lt, truth_lt)
+        intersection_right_bottom = tf.minimum(pre_rb, truth_rb)
+        # 相交区域宽高 : [batch_size, 13, 13, 3, 2]
+        intersection_wh = tf.maximum(intersection_right_bottom - intersection_left_top, 0.0)
+        # 相交区域面积 : [batch_size, 13, 13, 3, 1]
+        intersection_area = intersection_wh[..., 0:1] * intersection_wh[..., 1:2]
+        # 并集区域左上角坐标 
+        combine_left_top = tf.minimum(pre_lt, truth_lt)
+        # 并集区域右下角坐标
+        combine_right_bottom = tf.maximum(pre_rb, truth_rb)
+        # 并集区域宽高 : 这里其实不用 tf.max 也可以，因为右下坐标一定大于左上
+        combine_wh = tf.maximum(combine_right_bottom - combine_left_top, 0.0)
+
+        # 并集区域面积 : [batch_size, 13, 13, 3, 1]
+        C = combine_wh[..., 0:1] * combine_wh[..., 1:2]
+
+        # box面积 : [batch_size, 13, 13, 3, 1]
+        pre_area = pre_wh[..., 0:1] * pre_wh[..., 1:2]
+        true_area = yi_true_wh[..., 0:1] * yi_true_wh[..., 1:2]
+
+        # iou : [batch_size, 13, 13, 3, 1]
+        iou = intersection_area / (pre_area + true_area - intersection_area + 1e-10)
+        giou = iou - (C - (pre_area + true_area - intersection_area)) / C
+        giou_loss = 1.0 - giou
+        return giou_loss
+
+    # 计算 CIOU 损失
     def __get_CIOU_loss(self, pre_xy, pre_wh, yi_box):
         '''
         the formula of CIOU_LOSS is refers to http://bbs.cvmart.net/topics/1436
@@ -232,7 +339,7 @@ class YOLO():
         Cw = cx_cy[..., 0:1]
         Ch = cx_cy[..., 1:2]
         # [batch_size, 13, 13, 3, 1]
-        C = tf.square(Cw) * tf.square(Ch)
+        C = tf.square(Cw) + tf.square(Ch)
 
         dCw_dy = 0.0 
         dCh_dx = 0.0   
@@ -288,31 +395,14 @@ class YOLO():
                 loss_h + (2*Cw*dCw_dh+2*Ch*dCh_dh)*S / (C * C) + alpha * ar_dh,
                 loss_h)
 
-        # loss_x += (2*(yi_true_xy[..., 0:1] - pre_xy[..., 0:1])*C-(2*Cw*dCw_dx+2*Ch*dCh_dx)*S) / (C * C)
-        # loss_y += (2*(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])*C-(2*Cw*dCw_dy+2*Ch*dCh_dy)*S) / (C * C)            
-        # loss_w += (2*Cw*dCw_dw+2*Ch*dCh_dw)*S / (C * C) + alpha * ar_dw
-        # loss_h += (2*Cw*dCw_dh+2*Ch*dCh_dh)*S / (C * C) + alpha * ar_dh
+        loss_x += (2*(yi_true_xy[..., 0:1] - pre_xy[..., 0:1])*C-(2*Cw*dCw_dx+2*Ch*dCh_dx)*S) / (C * C)
+        loss_y += (2*(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])*C-(2*Cw*dCw_dy+2*Ch*dCh_dy)*S) / (C * C)            
+        loss_w += (2*Cw*dCw_dw+2*Ch*dCh_dw)*S / (C * C) + alpha * ar_dw
+        loss_h += (2*Cw*dCw_dh+2*Ch*dCh_dh)*S / (C * C) + alpha * ar_dh
 
         # [batch_size, 13, 13, 3, 4]
         loss_xywh = tf.concat([loss_x, loss_y, loss_w, loss_h], -1)
         return loss_xywh
-
-        '''
-        这是参考 http://bbs.cvmart.net/topics/1436 的公式写的
-        this formula of CIOU_LOSS is refer to http://bbs.cvmart.net/topics/1436
-        '''
-        # # 衡量长宽比一致性的参数
-        # # ar_loss
-        # v = 4 / (pi * pi) * tf.square( 
-        #                               tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2])
-        #                                - tf.math.atan(pre_wh[...,0:1] / pre_wh[..., 1:2]) )
-
-        # # trade-off 参数
-        # # alpha
-        # alpha = v / (1.0 - iou + v + 1e-10)
-        # ciou_loss = 1 - iou + d / C + alpha * v
-        # return ciou_loss
-
 
     # 得到低iou的地方
     def __get_low_iou_mask(self, pre_xy, pre_wh, yi_true, use_iou=True, ignore_thresh=0.5):
@@ -494,12 +584,11 @@ class YOLO():
         conf_loss:置信度损失
         class_loss:分类损失
         '''
-        # 得到与真值 iou 低的地方 mask
+        # mask of low iou 
         low_iou_mask = self.__get_low_iou_mask(xy, wh, yi_true, ignore_thresh=ignore_thresh)
-        # 得到物体预测概率很低的地方 mask
-        low_prob_mask = self.__get_low_prob_mask(prob, prob_thresh=prob_thresh)
-        
-        # iou低或者概率低的地方 mask
+        # mask of low prob
+        low_prob_mask = self.__get_low_prob_mask(prob, prob_thresh=prob_thresh)        
+        # mask of low iou or low prob
         low_iou_prob_mask = tf.math.logical_or(low_iou_mask, low_prob_mask)
         low_iou_prob_mask = tf.cast(low_iou_prob_mask, tf.float32)
 
@@ -507,40 +596,34 @@ class YOLO():
         N = tf.shape(xy)[0]
         N = tf.cast(N, tf.float32)
 
-        # iou低或者概率低的地方,损失系数
         # [batch_size, 13, 13, 3, 1]
         conf_scale = wh[..., 0:1] * wh[..., 1:2]
         conf_scale = tf.where(tf.math.greater(conf_scale, 0),
                                                         tf.math.sqrt(conf_scale), conf_scale)
         conf_scale = conf_scale * cls_normalizer                                                        
         conf_scale = tf.math.square(conf_scale)
-
         # [batch_size, 13, 13, 3, 1]
         no_obj_mask = 1.0 - yi_true[..., 4:5]
         conf_loss_no_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                             labels=yi_true[:,:,:,:,4:5], logits=conf
                                                             ) * conf_scale * no_obj_mask * low_iou_prob_mask
-
         # [batch_size, 13, 13, 3, 1]
         obj_mask = yi_true[..., 4:5]        
         conf_loss_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                             labels=yi_true[:,:,:,:,4:5], logits=conf
-                                                            ) * np.square(cls_normalizer) * obj_mask
-        
+                                                            ) * np.square(cls_normalizer) * obj_mask        
         # 置信度损失
         conf_loss = conf_loss_obj + conf_loss_no_obj
         conf_loss = tf.reduce_sum(conf_loss) / N
 
-        '''
-        yolov3 的 xy,wh 损失计算
-        the xy_loss and wh_loss compute in yolov3
-        '''
-        # '''        
-        # 平衡系数
-        loss_scale = tf.square(2. - yi_true[..., 2:3] * yi_true[..., 3:4])
+        # giou_loss
+        giou_loss = self.__my_GIOU_loss(xy, wh, yi_true[..., 0:4])
+        # giou_loss = self.__my_CIOU_loss(xy, wh, yi_true[..., 0:4])
+        giou_loss = tf.clip_by_value(giou_loss, 1e-10, 1e10)
+        giou_loss = tf.square(giou_loss * obj_mask * iou_normalizer)
 
         # xy 损失
-        xy_loss = loss_scale * obj_mask * tf.square(yi_true[..., 0: 2] - xy)
+        xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy) + giou_loss
         xy_loss = tf.reduce_sum(xy_loss) / N
 
         # wh 损失
@@ -553,40 +636,16 @@ class YOLO():
         wh_y_true = tf.math.log(wh_y_true)
         wh_y_pred = tf.math.log(wh_y_pred)
 
-        wh_loss = loss_scale * obj_mask * tf.square(wh_y_true - wh_y_pred)
+        wh_loss = obj_mask * tf.square(wh_y_true - wh_y_pred) + giou_loss
         wh_loss = tf.reduce_sum(wh_loss) / N
-        # '''
         
-        '''
-         yolov4的 ciou 损失计算(失败)
-        the xy_loss and wh_loss compute in yolov4(i failed)
-        '''
-        '''
-        # xywh损失:CIOU loss
-        # avoid nan in ciou_loss
-        wh = tf.where(tf.equal(wh, 0.0), tf.ones_like(wh), wh)
-        # dt, db, dl, dr
-        xywh_loss = self.__get_CIOU_loss(xy, wh, yi_true[..., 0:4])
-        # predict exponential, apply gradient of e^delta_t ONLY for w,h
-        wh_loss = xywh_loss[..., 2:4] * wh
-        xy_loss = xywh_loss[..., 0:2]
-        # 修正无穷大无穷小
-        wh_loss = tf.clip_by_value(wh_loss, 1e-10, 1e10) * obj_mask * iou_normalizer
-        xy_loss = tf.clip_by_value(xy_loss, 1e-10, 1e10) * obj_mask * iou_normalizer
-        # 计算损失
-        xy_loss = tf.reduce_sum(xy_loss) / N
-        wh_loss = tf.reduce_sum(wh_loss) / N
-        # 平方
-        '''
-
         # prob 损失
-        # 分类得分
         # [batch_size, 13, 13, 3, class_num]
         prob_score = prob * conf
-        # 得到得分大于阈值的区域
+        
         high_score_mask = prob_score > score_thresh
         high_score_mask = tf.cast(high_score_mask, tf.float32)
-        # iou低,概率低,没物体, 分类分数高
+        
         class_loss_no_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                         labels=yi_true[...,5:5+self.class_num],
                                                         logits=prob 
@@ -601,6 +660,7 @@ class YOLO():
         class_loss = tf.reduce_sum(class_loss) / N
 
         loss_total = xy_loss + wh_loss + conf_loss + class_loss
+        # loss_total = giou_loss + conf_loss + class_loss
         return loss_total
 
     # 获得损失 yolov3
