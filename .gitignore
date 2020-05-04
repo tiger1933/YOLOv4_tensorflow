@@ -139,4 +139,9 @@ dmypy.json
 /save/*
 !save/60.jpg
 /log/*
+/VOC/*
+/voc_save/*
+/voc_test_pic/*
+!/voc_test_pic/000046.jpg
 yolov4.pdf
+test_project.py

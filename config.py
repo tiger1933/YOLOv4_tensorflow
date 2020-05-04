@@ -3,10 +3,10 @@
 
 # ############# 基本配置 #############
 class_num = 25
-anchors = 19,26, 18,38, 24,39, 26,37, 28,38, 27,40, 29,40, 32,41, 40,44
+anchors = 13,20, 19,37, 22,38, 26,38, 28,39, 33,35, 39,44, 51,77, 72,98
 model_path = "./checkpoint/"
 model_name = "model"
-name_file = './data/train.names'
+name_file = './data/train.names'                # 自己的数据集的名字
 
 # ############# 日志 #############
 log_dir = './log'
@@ -20,18 +20,17 @@ multi_scale_img = False     # 多尺度缩放图片训练
 total_epoch = 300       # 一共训练多少 epoch
 save_step = 1000        # 多少步保存一次
 
-use_iou = True      # 计算损失时, 以iou作为衡量标准, 否则用 giou
 cls_normalizer = 1.0    # 置信度损失系数
 ignore_thresh = 0.5     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
 prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
-lr_init = 2e-4                      # 初始学习率	# 
+lr_init = 2e-4                      # 初始学习率	# 0.00261
 lr_lower =1e-6                  # 最低学习率    
-lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
-piecewise_boundaries = [10, 50]   # 单位:epoch, for piecewise
-piecewise_values = [2e-4, 5e-4, 1e-5]
+lr_type = 'piecewise'   # 学习率类型 'exponential', 'piecewise', 'constant'
+piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
+piecewise_values = [5e-5, 1e-5, 5e-6]
 
 # 优化器配置
 optimizer_type = 'momentum' # 优化器类型
@@ -50,3 +49,13 @@ width = 416                     # 图片宽, 6G显存跑不起来 608 的, 哪�
 height = 416                    # 图片高
 
 
+# ############## VOC训练 ##############
+voc_root_dir = "/home/random/下载/VOC_dataset"  # voc 数据集存放的根目录
+voc_dir_ls = ['2007_trainval', '2012_trainval']                # 使用的voc数据集名字
+voc_test_dir = "./voc_test_pic"                                                 # voc 数据集的测试图片
+voc_save_dir = "./voc_save"                                                     # voc 数据集保存的图片
+voc_model_path = "./VOC"                                                        # voc 模型保存路径
+voc_model_name = "voc"                                          # voc 训练保存的模型名字
+voc_names = "./data/voc.names"                             # voc 物体名
+voc_class_num = 20
+voc_anchors = 10,13,  16,30,  33,23,  30,61,  62,45,  59,119,  116,90,  156,198,  373,326

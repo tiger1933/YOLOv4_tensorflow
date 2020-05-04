@@ -24,6 +24,24 @@ python val.py
 ```
 如果没有报错, 就没问题<br/>
 if have no error, it's ok
+</br>
+
+### 在 VOC 数据集上训练
+### train on VOC
+打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录, voc_dir_ls 修改为自己想要训练的VOC数据集名</br>
+open config.py and modify the voc_root_dir to the root of your VOC dataset, modiry the voc_dir_ls to the name of VOC dataset witch  you want to train </br>
+</br>
+执行命令</br>
+run the command</br>
+```
+python train_voc.py
+```
+训练完成后,将测试图片放到 voc_test_pic 文件夹下,执行命令</br>
+put test images into voc_test_pic folder, and run the following command after the model training.</br>
+```
+python val_voc.py
+```
+</br>
 
 ### 转换 yolov4.weights (没有成功)
 ### convert yolov4.weights to fit our code(i failed )

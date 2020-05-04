@@ -1,14 +1,16 @@
 # coding:utf-8
-# 数据加载
+# voc 数据加载
 import numpy as np
 from src import Log
 from utils import tools
 import random
 import cv2
+import os
+from os import path
 
 class Data():
-    def __init__(self, data_file, class_num, batch_size, anchors, multi_scale_img=True, width=608, height=608):
-        self.data_file = data_file  # 数据文件
+    def __init__(self, voc_root_dir, voc_dir_ls, voc_names, class_num, batch_size, anchors, multi_scale_img=True, width=608, height=608):
+        self.data_dirs = [path.join(path.join(voc_root_dir, voc_dir), "JPEGImages") for voc_dir in voc_dir_ls]  # 数据文件路径
         self.class_num = class_num  # 分类数
         self.batch_size = batch_size
         self.anchors = np.asarray(anchors).astype(np.float32).reshape([-1, 2]) / [width, height]     #[9,2]
@@ -19,9 +21,12 @@ class Data():
         self.labels_path = []
 
         self.num_batch = 0      # 多少个 batch 了
+        self.num_imgs = 0       # 一共多少张图片
 
         self.width = width
         self.height = height
+
+        self.names_dict = tools.word2id(voc_names)    # 名字到 id 的字典
 
         # 初始化各项参数
         self.__init_args()
@@ -31,18 +36,24 @@ class Data():
         Log.add_log("message:开始初始化路径")
 
         # init imgs path
-        self.imgs_path = tools.read_file(self.data_file)
-        if not self.imgs_path:
-            Log.add_log("error:imgs_path文件不存在")
-            raise ValueError(str(self.data_file) + ":文件中不存在路径")
-        Log.add_log("message:一共有 "+str(len(self.imgs_path)) + " 张图片")
-
-        # init labels path
-        for img in self.imgs_path:
-            label_path = img.replace("JPEGImages", "labels")
-            label_path = label_path.replace(img.split('.')[-1], "txt")
-            self.labels_path.append(label_path)
-        Log.add_log("message:数据路径初始化完成")
+        for voc_dir in self.data_dirs:
+            for img_name in os.listdir(voc_dir):
+                img_path = path.join(voc_dir, img_name)
+                label_path = img_path.replace("JPEGImages", "Annotations")
+                label_path = label_path.replace(img_name.split('.')[-1], "xml")
+                if not path.isfile(img_path):
+                    Log.add_log("warning:VOC 图片文件'"+str(img_path)+"'不存在")
+                    continue
+                if not path.isfile(label_path):
+                    Log.add_log("warning:VOC 标签文件'"+str(label_path)+"'不存在")
+                    continue
+                self.imgs_path.append(img_path)
+                self.labels_path.append(label_path)
+                self.num_imgs += 1        
+        Log.add_log("message:VOC 数据初始化完成,一共有 "+str(self.num_imgs)+" 张图片")
+        
+        if self.num_imgs <= 0:
+            raise ValueError("没有可训练的图片, 程序退出")
         
         return
         
@@ -62,12 +73,12 @@ class Data():
         return img
     
     # 读取标签
-    def read_label(self, label_file):
+    def read_label(self, label_file, names_dict):
         '''
         读取 label_file, 并生成 label_y1, label_y2, label_y3
         return:label_y1, label_y2, label_y3
         '''
-        contents = tools.read_file(label_file)
+        contents = tools.parse_voc_xml(label_file, names_dict)  
         if not contents:
             return None, None, None
 
@@ -79,10 +90,6 @@ class Data():
         ratio = {0:8, 1:16, 2:32}
 
         for label in contents:
-            label = label.split()
-            if len(label) != 5:
-                Log.add_log("error:文件'" + str(label_file) + "'标签数量错误")
-                raise ValueError(str(label_file) + ":标签数量错误")
             label_id = int(label[0])
             box = np.asarray(label[1: 5]).astype(np.float32)   # label中保存的就是 x,y,w,h
 
@@ -124,17 +131,17 @@ class Data():
 
         count = 0
         while count < self.batch_size:
-            curr_index = random.randint(0, len(self.imgs_path) - 1)
+            curr_index = random.randint(0, self.num_imgs - 1)
             img_name = self.imgs_path[curr_index]
             label_name = self.labels_path[curr_index]
 
             img = self.read_img(img_name)
-            label_y1, label_y2, label_y3 = self.read_label(label_name)
+            label_y1, label_y2, label_y3 = self.read_label(label_name, self.names_dict)
             if img is None:
-                Log.add_log("文件'" + img_name + "'读取异常")
+                Log.add_log("VOC 文件'" + img_name + "'读取异常")
                 continue
             if label_y1 is None:
-                Log.add_log("文件'" + label_name + "'读取异常")
+                Log.add_log("VOC 文件'" + label_name + "'读取异常")
                 continue
             imgs.append(img)
             labels_y1.append(label_y1)

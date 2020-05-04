@@ -6,6 +6,7 @@ from os import path
 import time
 import cv2
 import random
+from xml.dom.minidom import parse
 
 '''
 ##################### 文件操作 #####################
@@ -50,6 +51,42 @@ def rewrite_file(file_name, ls_line):
         for line in ls_line:
             f.write(str(line) + '\n')
     return
+
+# 解析 voc xml 文件
+def parse_voc_xml(file_name, names_dict):
+    '''
+    解析voc数据集的 xml 文件,每一个列表表示一个图片中的全部标签
+    return [ [id1, x1, y1, w1, h1], [id2, x2, y2, w2, h2], ... ]
+    '''
+    # print(file_name)
+    # print(names_dict)
+    result = []
+    if not os.path.isfile(file_name):
+        return None
+    doc = parse(file_name)
+    root = doc.documentElement
+    size = root.getElementsByTagName('size')[0]
+    width = int(size.getElementsByTagName('width')[0].childNodes[0].data)
+    height = int(size.getElementsByTagName('height')[0].childNodes[0].data)
+
+    objs = root.getElementsByTagName('object')
+    for obj in objs:
+        name = obj.getElementsByTagName('name')[0].childNodes[0].data
+        name_id = names_dict[name]
+
+        bndbox = obj.getElementsByTagName('bndbox')[0]
+        xmin = int(float(bndbox.getElementsByTagName('xmin')[0].childNodes[0].data))
+        ymin = int(float(bndbox.getElementsByTagName('ymin')[0].childNodes[0].data))
+        xmax = int(float(bndbox.getElementsByTagName('xmax')[0].childNodes[0].data))
+        ymax = int(float(bndbox.getElementsByTagName('ymax')[0].childNodes[0].data))
+
+        x = (xmax + xmin) / 2.0 / width
+        w = (xmax - xmin) / width
+        y = (ymax + ymin) / 2.0 / height
+        h = (ymax - ymin) / height
+
+        result.append([name_id, x, y, w, h])
+    return result
 
 '''
 ######################## 时间操作 ####################
@@ -124,6 +161,18 @@ def get_word_dict(name_file):
     for i in range(len(contents)):
         word_dict[i] = str(contents[i])
     return word_dict
+
+# name => id 的转换
+def word2id(names_file):
+    '''
+    得到 名字 到 id 的转换字典
+    return {}
+    '''
+    id_dict = {}
+    contents = read_file(names_file)
+    for i in range(len(contents)):
+        id_dict[str(contents[i])] = i
+    return id_dict
 
 # 限制数字
 def constrait(x, start, end):
