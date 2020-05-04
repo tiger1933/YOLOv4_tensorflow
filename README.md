@@ -6,6 +6,9 @@ continuous update the code<br/>
 同志们，五一快乐。</br>
 hey guys, happy International Workers ' Day.</br>
 </br>
+终于解决了 ciou_loss NAN的问题</br>
+finally, the problem of CIOU_LOSS value equal to NAN was solved </br>
+</br>
 
 ## 二战中科院计算所失败，求老师调剂收留
 ## I want to be a graduate student.
@@ -43,21 +46,9 @@ i'm sure that the weights file convertion to the ckpt is successful, because the
 weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
 the weights_name.txt contains all model layer's name of the network <br/>
 <br/>
-还有很多策略没有实现，以后会慢慢更新</br>
-there are many strategies that have not been implemented, and will be updated slowly in the future.</br>
+数据增强策略没有实现，以后会慢慢更新</br>
+data enhancement strategies have not been implemented, and will be updated slowly in the future.</br>
 <br/>
-
-### GIOU 损失进行训练而不是 yolov4 的 CIOU 损失
-### use GIOU_LOSS in our network but CIOU_LOSS witch used in yolov4
-YOLO.py -> __get_CIOU_loss 函数是计算 ciou 损失的函数,函数的主体部分是参考 darknetv4 中 box.c -> dx_box_iou 函数实现的，但是损失值一直是 NAN，还在排查原因，目前暂无结论</br>
-YOLO.py -> __get_CIOU_loss function is to compute ciou loss , witch is refer to  src/box.c -> dx_box_iou function in darknetv4 , but the loss value has always been NAN, the cause of this error is still under research,  at present, there is no conclusion</br>
-</br>
-在 YOLO.py -> __compute_loss_v4 函数中调用了损失的计算, YOLO.py -> __my_CIOU_loss 函数和 __my_GIOU_loss 函数是参考[这个链接](http://bbs.cvmart.net/topics/1436)写的 CIOU 损失与 GIOU 损失的计算</br>
-in function of YOLO.py -> __compute_loss_v4 , called the loss compute function, the function of __my_CIOU_loss and __my_GIOU_loss in YOLO.py is to compute CIOU_LOSS and GIOU_LOSS respectively witch is refer to [this link](http://bbs.cvmart.net/topics/1436)</br>
-</br>
-使用 ciou_loss 经常性的出现损失 NAN 的问题，所以我使用 giou_loss 而不是原文的 ciou_loss。</br>
-when i use CIOU_LOSS in our network, the loss value often appears NAN, so i use GIOU_LOSS but CIOU_LOSS.</br>
-</br>
 
 ### 训练自己的数据集
 ### train with own dataset

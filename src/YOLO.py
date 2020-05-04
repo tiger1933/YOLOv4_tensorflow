@@ -172,14 +172,16 @@ class YOLO():
 
         # 衡量长宽比一致性的参数:[batch_size, 13, 13, 3, 1]
         v = 4 / (pi * pi) * tf.square( 
-                                      tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2])
-                                       - tf.math.atan(pre_wh[...,0:1] / pre_wh[..., 1:2]) )
+                                    tf.subtract(
+                                        tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2]),
+                                        tf.math.atan(pre_wh[...,0:1] / pre_wh[..., 1:2])
+                                        )
+                                    )
 
         # trade-off 参数
         # alpha
         alpha = v / (1.0 - iou + v)
-        # alpha = 1.0
-        ciou_loss = 1 - iou + D / C + alpha * v
+        ciou_loss = 1.0 - iou + D / C +  alpha * v
         return ciou_loss
 
     # 计算 GIOU 损失
@@ -618,10 +620,18 @@ class YOLO():
 
         # giou_loss
         giou_loss = self.__my_GIOU_loss(xy, wh, yi_true[..., 0:4])
-        # giou_loss = self.__my_CIOU_loss(xy, wh, yi_true[..., 0:4])
         giou_loss = tf.clip_by_value(giou_loss, 1e-10, 1e10)
         giou_loss = tf.square(giou_loss * obj_mask) * iou_normalizer
         giou_loss = tf.reduce_sum(giou_loss) / N
+
+        # ciou_loss
+        yi_true_ciou = tf.where(tf.math.less(yi_true[..., 0:4], 1e-10),
+                                                tf.ones_like(yi_true[..., 0:4]), yi_true[..., 0:4])
+        ciou_loss = self.__my_CIOU_loss(xy, wh, yi_true_ciou)
+        ciou_loss = tf.clip_by_value(ciou_loss, 1e-10, 1e10)
+        ciou_loss = tf.where(tf.math.greater(obj_mask, 0.5), ciou_loss, tf.zeros_like(ciou_loss))
+        ciou_loss = tf.square(ciou_loss * obj_mask) * iou_normalizer
+        ciou_loss = tf.reduce_sum(ciou_loss) / N
 
         # xy 损失
         xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy)
@@ -660,9 +670,12 @@ class YOLO():
         class_loss = class_loss_no_obj + class_loss_obj        
         class_loss = tf.reduce_sum(class_loss) / N
 
-        loss_total = xy_loss + wh_loss + conf_loss + class_loss + giou_loss
+        # loss_total = xy_loss + wh_loss + conf_loss + class_loss + giou_loss
+        loss_total = xy_loss + wh_loss + conf_loss + class_loss + ciou_loss
         # loss_total = giou_loss + conf_loss + class_loss
         return loss_total
+        # return giou_loss
+        # return ciou_loss
 
     # 获得损失 yolov3
     def get_loss(self, feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, use_iou=True, ignore_thresh=0.5):
