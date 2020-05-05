@@ -23,7 +23,7 @@ run the following command.
 python val.py
 ```
 如果没有报错, 就没问题<br/>
-if have no error, it's ok
+if have no error, it's ok</br>
 </br>
 
 ### 在 VOC 数据集上训练
@@ -42,11 +42,14 @@ put test images into voc_test_pic folder, and run the following command after th
 python val_voc.py
 ```
 </br>
+训练一晚上的结果，也还可以</br>
+it's the result of our code training for a night, not bad</br>
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
+</br>
 
 ### 转换 yolov4.weights (没有成功)
 ### convert yolov4.weights to fit our code(i failed )
-参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中
-执行命令<br/>
+参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中,执行命令<br/>
 refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.<br/>
 <br/>
 将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令<br/>

@@ -141,6 +141,7 @@ dmypy.json
 /log/*
 /VOC/*
 /voc_save/*
+!/voc_save/000302.jpg
 /voc_test_pic/*
 !/voc_test_pic/000046.jpg
 yolov4.pdf
