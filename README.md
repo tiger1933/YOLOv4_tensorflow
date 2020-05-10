@@ -108,8 +108,8 @@ put test images into test_pic folder, and run the following command after the mo
 python val.py
 ```
 <br/>
-这是我用54张图片训练了 2000 步(十分钟)的结果，效果还不错<br/>
-this image is the result of training 2000 steps (10 minutes) with 54 pictures, it looks not bad. <br/>
+这是我用123张图片训练了 5000 步(25分钟)的结果，效果还不错<br/>
+this image is the result of training 5000 steps (25 minutes) with 123 pictures, it looks not bad. <br/>
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
 ### 有关 config.py 和训练的提示
