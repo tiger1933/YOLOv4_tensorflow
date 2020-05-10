@@ -110,7 +110,7 @@ python val.py
 <br/>
 这是我用54张图片训练了 2000 步(十分钟)的结果，效果还不错<br/>
 this image is the result of training 2000 steps (10 minutes) with 54 pictures, it looks not bad. <br/>
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/60.jpg)
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
 ### 有关 config.py 和训练的提示
 ### some tips with config.py and train the model
