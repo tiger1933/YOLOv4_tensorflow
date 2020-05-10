@@ -88,8 +88,8 @@ python k_means.py
 ```
 <br/>
 打开 config.py, 将得到的 anchor box 写入到第六行，就像这样<br/>
-anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96<br/>
 open config.py, write the anchor box to line 6, just like this<br/>
+anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96<br/>
 <br/>
 所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改<br/>
 all configuration parameters are in the config.py, you can modify them according to your actual situation<br/>

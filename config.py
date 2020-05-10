@@ -3,7 +3,7 @@
 
 # ############# 基本配置 #############
 class_num = 25
-anchors = 13,20, 19,37, 22,38, 26,38, 28,39, 33,35, 39,44, 51,77, 72,98
+anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
 model_path = "./checkpoint/"
 model_name = "model"
 name_file = './data/train.names'                # 自己的数据集的名字
@@ -26,9 +26,9 @@ prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
-lr_init = 2e-4                      # 初始学习率	# 0.00261
+lr_init = 0.00261                      # 初始学习率	# 2e-4
 lr_lower =1e-6                  # 最低学习率    
-lr_type = 'piecewise'   # 学习率类型 'exponential', 'piecewise', 'constant'
+lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
 piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
 piecewise_values = [2e-4, 1e-4, 1e-4]
 
