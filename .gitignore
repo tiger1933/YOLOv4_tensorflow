@@ -132,6 +132,7 @@ dmypy.json
 /data/labels/*
 /data/JPEGImages/*
 /test_pic/*
+!/test_pic/62.jpg
 /data/yolov4.weights
 /yolo_weights/*
 !/yolo_weights/readme.txt
