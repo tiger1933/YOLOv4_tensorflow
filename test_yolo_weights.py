@@ -18,8 +18,6 @@ import os
 from os import path
 import time
 
-
-
 # 读取图片
 def read_img(img_name, width, height):
     '''
@@ -43,9 +41,10 @@ def save_img(img, name):
     img:需要保存的 mat 图片
     name:保存的图片名
     '''
-    if not path.isdir(config.save_dir):
-        os.mkdir(config.save_dir)
-    img_name = path.join(config.save_dir, name)
+    save_dir = "coco_save"
+    if not path.isdir(save_dir):
+        os.mkdir(save_dir)
+    img_name = path.join(save_dir, name)
     cv2.imwrite(img_name, img)
     return 
 
@@ -57,7 +56,7 @@ def main():
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, None, None, 3])
     feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, isTrain=False)
     pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, 80, 
-                                                                                                score_thresh=config.score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
+                                                                                                score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
     # 初始化
     init = tf.compat.v1.global_variables_initializer()
@@ -67,6 +66,7 @@ def main():
         sess.run(init)
         ckpt = tf.compat.v1.train.get_checkpoint_state("./yolo_weights")
         if ckpt and ckpt.model_checkpoint_path:
+            print("restore: ", ckpt.model_checkpoint_path)
             saver.restore(sess, ckpt.model_checkpoint_path)
         else:
             exit(1)

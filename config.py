@@ -21,7 +21,7 @@ total_epoch = 300       # 一共训练多少 epoch
 save_step = 1000        # 多少步保存一次
 
 cls_normalizer = 1.0    # 置信度损失系数
-ignore_thresh = 0.5     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
+ignore_thresh = 0.7     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
 prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
@@ -39,8 +39,8 @@ weight_decay = 0.0005
 
 
 # ############## 测试 ##############
-score_thresh = 0.5      # 少于这个分数就忽略
-iou_thresh = 0.2            # iou 大于这个值就认为是同一个物体
+val_score_thresh = 0.5      # 少于这个分数就忽略
+iou_thresh = 0.213            # iou 大于这个值就认为是同一个物体
 max_box = 50                # 物体最多个数
 val_dir = "./test_pic"  # 测试文件夹, 里面存放测试图片
 save_img = True             # 是否保存测试图片

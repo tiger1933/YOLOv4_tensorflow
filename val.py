@@ -58,7 +58,7 @@ def main():
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, None, None, 3])
     feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, isTrain=False)
     pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, config.class_num, 
-                                                                                                score_thresh=config.score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
+                                                                                                score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
     # 初始化
     init = tf.compat.v1.global_variables_initializer()

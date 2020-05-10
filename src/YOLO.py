@@ -540,4 +540,5 @@ class YOLO():
         pre_score = conf * prob
         boxes, score, label = self.__nms(boxes, pre_score, class_num, max_boxes=max_box, score_thresh=score_thresh, iou_threshold=iou_thresh)
         return boxes, score, label
+        # return conf, prob, tf.constant(1)
 

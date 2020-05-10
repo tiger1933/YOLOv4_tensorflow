@@ -51,9 +51,9 @@ def yolo_res_block(inputs, in_channels, res_num, double_ch=False):
         out_channels = in_channels * 2
 
     # 3,1,r,1模块儿
-    route = conv(inputs, in_channels*2, stride=2)            
-    net = conv(route, out_channels, kernel_size=1)     # in_channels
-    route = conv(route, out_channels, kernel_size=1)# in_channels
+    net = conv(inputs, in_channels*2, stride=2)            
+    route = conv(net, out_channels, kernel_size=1)     # in_channels
+    net = conv(net, out_channels, kernel_size=1)# in_channels
     
     # 1,3,s模块儿
     for _ in range(res_num):
@@ -101,8 +101,8 @@ def yolo_maxpool_block(inputs):
     max_9 = tf.nn.max_pool(inputs, [1, 9, 9, 1], [1, 1, 1, 1], 'SAME')
     max_13 = tf.nn.max_pool(inputs, [1, 13, 13, 1], [1, 1, 1, 1], 'SAME')
     # 拼接
-    inputs = tf.concat([max_13, max_9, max_5, inputs], -1)
-    return inputs
+    net = tf.concat([max_13, max_9, max_5, inputs], -1)
+    return net
 
 # 上采样模块儿
 def yolo_upsample_block(inputs, in_channels, route):
@@ -117,8 +117,8 @@ def yolo_upsample_block(inputs, in_channels, route):
     
     route = conv(route, in_channels, kernel_size=1)
 
-    inputs = tf.concat([route, inputs], -1)
-    return inputs
+    net = tf.concat([route, inputs], -1)
+    return net
 
 # 特征提取
 def extraction_feature(inputs, batch_norm_params, weight_decay):
@@ -167,12 +167,12 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
             net = yolo_maxpool_block(net)
             net = conv(net, 512, kernel_size=1)
             net = conv(net, 1024)
-            net = yolo_conv_block(net, 1024, 0, 1)
+            net = conv(net, 512, kernel_size=1)
             # 第116层特征, 用作最后的特征拼接
             # [N, 19, 19, 512]
             route_3 = net
 
-            net = yolo_conv_block(net, 512, 0, 1)
+            net = conv(net, 256, kernel_size=1)
             net = yolo_upsample_block(net, 256, up_route_85)
 
             net = yolo_conv_block(net, 512, 2, 1)
@@ -181,7 +181,7 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
             route_2 = net
 
             # [N, 38, 38, 256] => [N, 38, 38, 128]
-            net = yolo_conv_block(net, 256, 0, 1)
+            net = conv(net, 128, kernel_size=1)
             net = yolo_upsample_block(net, 128, up_route_54)
 
             net = yolo_conv_block(net, 256, 2, 1)

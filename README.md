@@ -2,16 +2,15 @@
 yolov4的tensorflow实现. <br/>
 Implement yolov4 with tensorflow<br/>
 持续更新<br/>
-continuous update the code<br/>
-同志们，五一快乐。</br>
-hey guys, happy International Workers ' Day.</br>
+continuous update the code</br>
 </br>
-终于解决了 ciou_loss NAN的问题</br>
-finally, the problem of CIOU_LOSS value equal to NAN was solved </br>
+
+## 以前代码的 mish 激活函数实现错误，请一定要用最新版本的代码。</br>
+## The previous work about MISH activation function was wrong, please use the latest code.</br>
 </br>
 
 ## 二战中科院计算所失败，求老师调剂收留
-## I want to be a graduate student.
+## The second time I failed in the postgraduate entrance examination, I eager the teacher would accept me.
 277118506@qq.com<br/>
 rdc01234@163.com<br/>
 
@@ -25,6 +24,31 @@ python val.py
 如果没有报错, 就没问题<br/>
 if have no error, it's ok</br>
 </br>
+
+### 转换 yolov4.weights
+### convert yolov4.weights to fit our code
+参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中,执行命令<br/>
+refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.</br>
+<br/>
+将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令<br/>
+put yolov4.weights into the "yolo_weights" folder, and run the command.
+```
+python convert_weight.py
+python test_yolo_weights.py
+```
+会在 yolo_weights 文件夹下生成权重文件<br/>
+the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
+<br/>
+你将会看到这样的画面,完美</br>
+you'll see ..., perfect</br>
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
+</br>
+weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
+the weights_name.txt contains all model layer's name of the network <br/>
+<br/>
+数据增强策略没有实现，以后会慢慢更新</br>
+data enhancement strategies have not been implemented, and will be updated slowly in the future.</br>
+<br/>
 
 ### 在 VOC 数据集上训练
 ### train on VOC
@@ -46,30 +70,6 @@ python val_voc.py
 it's the result of our code training for a night, not bad</br>
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 </br>
-
-### 转换 yolov4.weights (没有成功)
-### convert yolov4.weights to fit our code(i failed )
-参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中,执行命令<br/>
-refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.<br/>
-<br/>
-将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令<br/>
-put yolov4.weights into the "yolo_weights" folder, and run the command.
-```
-python convert_weight.py
-python test_yolo_weights.py
-```
-会在 yolo_weights 文件夹下生成权重文件<br/>
-the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
-<br/>
-权重转换是能够转换过来, 但是并不能跑出效果, 我确定全部权重都存放到了自己的项目中，因为权重的数量都是 64429405 个，排查了一天还是不知道哪里不对,我猜测是卷积层加载数据的顺序错了, 希望有同志能够帮忙解决这个问题, 谢谢了。<br/>
-i'm sure that the weights file convertion to the ckpt is successful, because the number of both weights are 64429405, but maybe the order of conv layer in this code is different with the yolov4, i worked for this for a day, still have no idea about it, I hope comrades can give me some help, thanks.<br/>
-<br/>
-weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
-the weights_name.txt contains all model layer's name of the network <br/>
-<br/>
-数据增强策略没有实现，以后会慢慢更新</br>
-data enhancement strategies have not been implemented, and will be updated slowly in the future.</br>
-<br/>
 
 ### 训练自己的数据集
 ### train with own dataset
