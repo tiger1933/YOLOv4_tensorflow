@@ -26,7 +26,7 @@ prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
-lr_init = 0.00261                      # 初始学习率	# 2e-4
+lr_init = 2e-4                      # 初始学习率	# 0.00261
 lr_lower =1e-6                  # 最低学习率    
 lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
 piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
