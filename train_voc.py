@@ -114,16 +114,12 @@ def backward():
             print("step: %6d, loss: %.5g\t, w: %3d, h: %3d, lr:%.5g\t, time: %5f s"
                          %(step, loss_, data.width, data.height, lr_, end-start))
                          
-            if loss_ > 1e10:
-                raise ValueError("损失太大,训练中断" + str(loss_))
-                exit(0)
-                         
             if step % 5 == 2:
                 Log.add_loss(str(step) + "\t" + str(loss_))
 
             if (step+1) % config.save_step == 0:
                 Log.add_log("message:当前运行模型保存, step=" + str(step) +", lr=" + str(lr_))
-                saver.save(sess, path.join(config.voc_model_path, config.voc_model_name), global_step=0)
+                saver.save(sess, path.join(config.voc_model_path, config.voc_model_name), global_step=step)
 
         Log.add_log("message:训练完成保存模型, step=" + str(step))
         saver.save(sess, path.join(config.voc_model_path, config.voc_model_name), global_step=step)

@@ -342,19 +342,20 @@ class YOLO():
         pre_wh = tf.where(tf.math.less(wh, 1e-10),
                                                 tf.ones_like(wh), wh)
         ciou_loss = self.__my_CIOU_loss(pre_xy, pre_wh, yi_true_ciou)
-        ciou_loss = tf.clip_by_value(ciou_loss, 1e-10, 1e10)
         ciou_loss = tf.where(tf.math.greater(obj_mask, 0.5), ciou_loss, tf.zeros_like(ciou_loss))
         ciou_loss = tf.square(ciou_loss * obj_mask) * iou_normalizer
+        ciou_loss = tf.clip_by_value(ciou_loss, 0, 1e4)
         ciou_loss = tf.reduce_sum(ciou_loss) / N
 
         # xy 损失
+        xy = tf.clip_by_value(xy, 1e-10, 1e4)
         xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy)
         xy_loss = tf.reduce_sum(xy_loss) / N
 
         # wh 损失
         wh_y_true = tf.where(condition=tf.equal(yi_true[..., 2:4], 0),
                                         x=tf.ones_like(yi_true[..., 2: 4]), y=yi_true[..., 2: 4])
-        wh_y_pred = tf.where(condition=tf.equal(wh, 0),
+        wh_y_pred = tf.where(condition=tf.math.less(wh, 1e-10),
                                         x=tf.ones_like(wh), y=wh)
         wh_y_true = tf.clip_by_value(wh_y_true, 1e-10, 1e10)
         wh_y_pred = tf.clip_by_value(wh_y_pred, 1e-10, 1e10)
@@ -362,6 +363,7 @@ class YOLO():
         wh_y_pred = tf.math.log(wh_y_pred)
 
         wh_loss = obj_mask * tf.square(wh_y_true - wh_y_pred)
+        wh_loss = tf.clip_by_value(wh_loss, 0, 1e4)
         wh_loss = tf.reduce_sum(wh_loss) / N
         
         # prob 损失
