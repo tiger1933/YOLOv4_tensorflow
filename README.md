@@ -92,7 +92,7 @@ open config.py, write the anchor box to line 6, just like this<br/>
 anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96<br/>
 </br>
 接下来，修改 data/train.names 中的内容为你需要训练的分类名字(不要用中文),并且将 config.py 中的分类数改为自己的分类数</br>
-and, now, modify the content in data/train.names to the category name that you need to train, and change the class_num in config.py to your own category number.
+and, now, modify the content in data/train.names to the category name that you need to train, and change the class_num in config.py to your own category number.</br>
 <br/>
 所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改<br/>
 all configuration parameters are in the config.py, you can modify them according to your actual situation<br/>
