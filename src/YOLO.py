@@ -332,7 +332,9 @@ class YOLO():
                                                             ) * np.square(cls_normalizer) * obj_mask        
         # 置信度损失
         conf_loss = conf_loss_obj + conf_loss_no_obj
+        conf_loss = tf.clip_by_value(conf_loss, 0.0, 1e3)
         conf_loss = tf.reduce_sum(conf_loss) / N
+        conf_loss = tf.clip_by_value(conf_loss, 0.0, 1e4)
 
         # ciou_loss
         yi_true_ciou = tf.where(tf.math.less(yi_true[..., 0:4], 1e-10),
@@ -344,16 +346,19 @@ class YOLO():
         ciou_loss = self.__my_CIOU_loss(pre_xy, pre_wh, yi_true_ciou)
         ciou_loss = tf.where(tf.math.greater(obj_mask, 0.5), ciou_loss, tf.zeros_like(ciou_loss))
         ciou_loss = tf.square(ciou_loss * obj_mask) * iou_normalizer
-        ciou_loss = tf.clip_by_value(ciou_loss, 0, 1e4)
+        ciou_loss = tf.clip_by_value(ciou_loss, 0, 1e3)
         ciou_loss = tf.reduce_sum(ciou_loss) / N
+        ciou_loss = tf.clip_by_value(ciou_loss, 0, 1e4)
 
         # xy 损失
         xy = tf.clip_by_value(xy, 1e-10, 1e4)
         xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy)
+        xy_loss = tf.clip_by_value(xy_loss, 0.0, 1e3)
         xy_loss = tf.reduce_sum(xy_loss) / N
+        xy_loss = tf.clip_by_value(xy_loss, 0.0, 1e4)
 
         # wh 损失
-        wh_y_true = tf.where(condition=tf.equal(yi_true[..., 2:4], 0),
+        wh_y_true = tf.where(condition=tf.math.less(yi_true[..., 2:4], 1e-10),
                                         x=tf.ones_like(yi_true[..., 2: 4]), y=yi_true[..., 2: 4])
         wh_y_pred = tf.where(condition=tf.math.less(wh, 1e-10),
                                         x=tf.ones_like(wh), y=wh)
@@ -363,8 +368,9 @@ class YOLO():
         wh_y_pred = tf.math.log(wh_y_pred)
 
         wh_loss = obj_mask * tf.square(wh_y_true - wh_y_pred)
-        wh_loss = tf.clip_by_value(wh_loss, 0, 1e4)
+        wh_loss = tf.clip_by_value(wh_loss, 0.0, 1e3)
         wh_loss = tf.reduce_sum(wh_loss) / N
+        wh_loss = tf.clip_by_value(wh_loss, 0.0, 1e4)
         
         # prob 损失
         # [batch_size, 13, 13, 3, class_num]
@@ -384,7 +390,9 @@ class YOLO():
                                                     ) * obj_mask
 
         class_loss = class_loss_no_obj + class_loss_obj        
+        class_loss = tf.clip_by_value(class_loss, 0.0, 1e3)
         class_loss = tf.reduce_sum(class_loss) / N
+        class_loss = tf.clip_by_value(class_loss, 0.0, 1e4)
 
         loss_total = xy_loss + wh_loss + conf_loss + class_loss + ciou_loss
         return loss_total

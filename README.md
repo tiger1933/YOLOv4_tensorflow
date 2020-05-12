@@ -70,6 +70,8 @@ python val_voc.py
 it's the result of our code training for a night, not bad</br>
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 </br>
+此外，在VOC上训练时，我发现损失有时候会是Nan, 我正在尝试解决这个问题.</br>
+in addition, i found that the loss sometimes become Nan  when i training on VOC, i'm trying to repair this bug.</br>
 
 ### 训练自己的数据集
 ### train with own dataset

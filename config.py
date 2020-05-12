@@ -18,7 +18,7 @@ train_file = './data/train.txt'
 batch_size = 2
 multi_scale_img = False     # 多尺度缩放图片训练
 total_epoch = 300       # 一共训练多少 epoch
-save_step = 5000        # 多少步保存一次
+save_step = 10000        # 多少步保存一次
 
 cls_normalizer = 1.0    # 置信度损失系数
 ignore_thresh = 0.7     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
