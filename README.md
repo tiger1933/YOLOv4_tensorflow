@@ -41,6 +41,7 @@ the ckpt weights file wound exits in the 'yolo_weights' folder<br/>
 <br/>
 你将会看到这样的画面,完美</br>
 you'll see ..., perfect</br>
+
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
 </br>
 weights_name.txt 文件中存放的是图模型的卷积层和bn的名字<br/>
@@ -66,8 +67,8 @@ put test images into voc_test_pic folder, and run the following command after th
 python val_voc.py
 ```
 </br>
-训练一天(321999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错</br>
-it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(321999 steps), not bad</br>
+训练一天(364999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错</br>
+it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(364999 steps), not bad</br>
 </br>
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)</br>
@@ -126,6 +127,7 @@ python val.py
 <br/>
 这是我用123张图片训练了 5000 步(25分钟)的结果，效果还不错<br/>
 this image is the result of training 5000 steps (25 minutes) with 123 pictures, it looks not bad. <br/>
+
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
 ### 有关 config.py 和训练的提示
