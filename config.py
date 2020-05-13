@@ -7,6 +7,7 @@ anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
 model_path = "./checkpoint/"
 model_name = "model"
 name_file = './data/train.names'                # 自己的数据集的名字
+keep_img_shape = False              # resize时保持图片形状;目前仅仅用于 yolov4.weights 的测试
 
 # ############# 日志 #############
 log_dir = './log'

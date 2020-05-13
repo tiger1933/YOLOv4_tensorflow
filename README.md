@@ -142,6 +142,13 @@ learning rate do not set too large<br/>
 when the loss value is Nan, please lower your learning rate.
 </br>
 
+### 致谢
+### Thanks
+感谢以下同仁对仓库代码改进提供的宝贵意见</br>
+Thanks to the following colleagues for their valuable comments on code improvements.</br>
+
+[Jiachenyin1](https://github.com/Jiachenyin1)</br>
+
 ### 自己的设备
 ### my device
 GPU : 1660ti (华硕猛禽) 6G<br/>

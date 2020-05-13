@@ -19,7 +19,7 @@ from os import path
 import time
 
 # 读取图片
-def read_img(img_name, width, height):
+def read_img(img_name, width, height, keep_img_shape = config.keep_img_shape):
     '''
     读取一张图片并转化为网络输入格式
     return:网络输入图片, 原始 BGR 图片
@@ -27,8 +27,22 @@ def read_img(img_name, width, height):
     img_ori = tools.read_img(img_name)
     if img_ori is None:
         return None, None
-    img = cv2.resize(img_ori, (width, height))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    if not keep_img_shape:
+        img = cv2.resize(img_ori, (width, height))
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    else:
+        # add by rdc ,follow @Jiachenyin1
+        target_h , target_w = height , width
+        ori_h , ori_w , _= img_ori.shape
+        scale = min(target_h / ori_h , target_w / ori_w)
+        nw  , nh = int(scale * ori_w) , int(scale * ori_h)
+        image_resized = cv2.resize(img_ori , (nw , nh))  ##宽 和 长
+        img = np.full(shape = [target_h , target_w , 3] , fill_value= 0, dtype=np.uint8)
+        dh , dw = (target_h - nh)//2 , (target_w - nw)//2
+        img[dh:(nh+dh) , dw:(nw+dw),:] = image_resized
+        img_ori = img
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+
     img = img.astype(np.float32)
     img = img/255.0
     # [416, 416, 3] => [1, 416, 416, 3]
