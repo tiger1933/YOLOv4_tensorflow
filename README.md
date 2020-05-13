@@ -69,7 +69,8 @@ python val_voc.py
 训练一天(321999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错</br>
 it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(321999 steps), not bad</br>
 </br>
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
+
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)</br>
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
 </br>
 此外，在VOC上训练时的 loss nan 问题应该已经被解决了.</br>
@@ -77,9 +78,9 @@ in addition, the bug of loss sometimes become Nan  when i training on VOC has be
 </br>
 这是我训练的损失图，学习率貌似有点太小了</br>
 it's the image of loss value, and seems that the lr is too lower(2e-4), we should set it larger.</br>
-'''
+```
 python show_loss.py 20 300
-'''
+```
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
 
