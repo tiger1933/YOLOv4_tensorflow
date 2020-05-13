@@ -50,8 +50,8 @@ the weights_name.txt contains all model layer's name of the network <br/>
 data enhancement strategies have not been implemented, and will be updated slowly in the future.</br>
 <br/>
 
-### 在 VOC 数据集上训练
-### train on VOC
+### 在 VOC2007 和 VOC2012 数据集上训练
+### train on VOC2007 and VOC2012
 打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录, voc_dir_ls 修改为自己想要训练的VOC数据集名</br>
 open config.py and modify the voc_root_dir to the root of your VOC dataset, modiry the voc_dir_ls to the name of VOC dataset witch  you want to train </br>
 </br>
@@ -66,12 +66,22 @@ put test images into voc_test_pic folder, and run the following command after th
 python val_voc.py
 ```
 </br>
-训练一晚上的结果，也还可以</br>
-it's the result of our code training for a night, not bad</br>
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
+训练一天(321999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错</br>
+it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(321999 steps), not bad</br>
 </br>
-此外，在VOC上训练时，我发现损失有时候会是Nan, 我正在尝试解决这个问题.</br>
-in addition, i found that the loss sometimes become Nan  when i training on VOC, i'm trying to repair this bug.</br>
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
+</br>
+此外，在VOC上训练时的 loss nan 问题应该已经被解决了.</br>
+in addition, the bug of loss sometimes become Nan  when i training on VOC has been repaired.</br>
+</br>
+这是我训练的损失图，学习率貌似有点太小了</br>
+it's the image of loss value, and seems that the lr is too lower(2e-4), we should set it larger.</br>
+'''
+python show_loss.py 20 300
+'''
+
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
 
 ### 训练自己的数据集
 ### train with own dataset

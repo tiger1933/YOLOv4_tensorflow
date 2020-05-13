@@ -415,17 +415,17 @@ class YOLO():
         # y1
         xy, wh, conf, prob = self.__decode_feature(feature_y1, self.anchors[2])
         loss_y1 = self.__compute_loss_v4(xy, wh, conf, prob, y1_true, cls_normalizer=1.0, 
-                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=prob_thresh, score_thresh=score_thresh)
 
         # y2
         xy, wh, conf, prob = self.__decode_feature(feature_y2, self.anchors[1])
         loss_y2 = self.__compute_loss_v4(xy, wh, conf, prob, y2_true, cls_normalizer=1.0, 
-                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=prob_thresh, score_thresh=score_thresh)
 
         # y3
         xy, wh, conf, prob = self.__decode_feature(feature_y3, self.anchors[0])
         loss_y3 = self.__compute_loss_v4(xy, wh, conf, prob, y3_true, cls_normalizer=1.0, 
-                                                                                    ignore_thresh=ignore_thresh, prob_thresh=0.25, score_thresh=0.25)
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=prob_thresh, score_thresh=score_thresh)
 
         return loss_y1 + loss_y2 + loss_y3
 
