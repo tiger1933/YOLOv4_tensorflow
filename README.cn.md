@@ -1,5 +1,5 @@
 # YOLOv4_tensorflow | **[English introductions](README.md)**
-* yolov4的tensorflow实现.
+* yolov4的纯tensorflow实现.
 * 数据增强还没有实现
 * 持续更新
 
@@ -23,6 +23,7 @@ python test_yolo_weights.py
 ```
 * 会在 yolo_weights 文件夹下生成 ckpt 权重文件
 * 并且你将会看到这样的画面,完美
+
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
 * weights_name.txt 文件中存放的是图模型的卷积层和bn的名字
 
@@ -38,7 +39,7 @@ python val_voc.py
 ```
 * 训练一天(364999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错
 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)</br>
+![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
 * 此外，在VOC上训练时的 loss nan 问题应该已经被解决了.
 * 这是我训练的损失图，学习率貌似有点太小了

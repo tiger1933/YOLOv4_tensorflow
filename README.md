@@ -3,6 +3,7 @@
 * data enhancement strategies have not been implemented
 * continuous update the code
 </br>
+
 * rdc01234@163.com
 * 277118506@qq.com
 
@@ -22,7 +23,9 @@ python test_yolo_weights.py
 ```
 * the ckpt weights file wound exits in the 'yolo_weights' folder
 * and you'll see some images like this, it seems perfect
+
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
+
 * the weights_name.txt contains all model layer's name of the network 
 
 ### train on VOC2007 and VOC2012
@@ -39,6 +42,7 @@ python val_voc.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
+
 * in addition, the bug of loss sometimes become Nan  when i training on VOC should has been repaired.
 * it's the image of loss value, and seems that the lr is too lower(2e-4), we should set it larger.
 ```
@@ -59,7 +63,7 @@ python k_means.py
 ```
 * open config.py, write the anchor box to line 6, just like this
 ```
-anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96<br/>
+anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96
 ```
 * and, now, modify the content in **data/train.names** to the category name that you need to train, and change the **class_num** in config.py to your own category number.
 * **all configuration parameters are in the config.py, you can modify them according to your actual situation**
