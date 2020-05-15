@@ -14,7 +14,7 @@ python val.py
 ```
 * if have no error, it's ok
 
-### convert yolov4.weights to fit our code
+## convert yolov4.weights to fit our code
 * refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.
 * **put yolov4.weights into the "yolo_weights" folder, and run the command.**
 ```
@@ -28,7 +28,7 @@ python test_yolo_weights.py
 
 * the weights_name.txt contains all model layer's name of the network 
 
-### train on VOC2007 and VOC2012
+## train on VOC2007 and VOC2012
 * open config.py and modify the **voc_root_dir** to the root of your VOC dataset, modiry the **voc_dir_ls** to the name of VOC dataset witch  you want to train </br>
 * run the command
 ```
@@ -51,7 +51,7 @@ python show_loss.py 20 300
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
 
-### train with own dataset
+## train with own dataset
 * The jpg image and the corresponding json file which marked with **labelme** are stored in the folder **./data/JPEGImages**, just like what I do in the ./data/JPEGImages  folder
 * and then, go to the folder **./data**, execute the following python command, it automatically generates label files and train.txt
 ```
@@ -79,16 +79,16 @@ python val.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
-### some tips with config.py and train the model
+## some tips with config.py and train the model
 1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416
 2. learning rate do not set too large
 3. when the loss value is Nan, please lower your learning rate.
 
-### Thanks
+## Thanks
 Thanks to the following friends for their valuable comments on code improvements.</br>
 1. [Jiachenyin1](https://github.com/Jiachenyin1)
 
-### my device
+## my device
 GPU : 1660ti (ASUS) 6G</br>
 CPU : i5 9400f</br>
 mem : 16GB</br>

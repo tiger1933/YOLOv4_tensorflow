@@ -1,4 +1,4 @@
-# YOLOv4_tensorflow | **[English introductions](README.md)**
+# YOLOv4_tensorflow | [English introductions](README.md)
 * yolov4的纯tensorflow实现.
 * 数据增强还没有实现
 * 持续更新
@@ -14,7 +14,7 @@ python val.py
 ```
 * 如果没有报错, 就没问题
 
-### 转换 yolov4.weights
+## 转换 yolov4.weights
 * 参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中
 * **将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令**
 ```
@@ -27,7 +27,7 @@ python test_yolo_weights.py
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
 * weights_name.txt 文件中存放的是图模型的卷积层和bn的名字
 
-### 在 VOC2007 和 VOC2012 数据集上训练
+## 在 VOC2007 和 VOC2012 数据集上训练
 * 打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录, voc_dir_ls 修改为自己想要训练的VOC数据集名
 * 执行命令
 ```
@@ -49,7 +49,7 @@ python show_loss.py 20 300
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
 
-### 训练自己的数据集
+## 在自己的数据集上训练
 * ./data/JPEGImages 文件夹中存放用**labelme**标注**json文件**的jpg图片和对应的json文件, 参考我给的  ./data/JPEGImages 文件夹下的格式
 * 然后在 ./data 文件夹下执行 python 命令, 会自动产生 label 文件和 train.txt 文件
 ```
@@ -77,17 +77,16 @@ python val.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
-### 有关 config.py 和训练的提示
+## 有关 config.py 和训练的提示
 1. config.py 中的 width 和 height 应该是 608，显存不够才调整为 416 的
 2. 学习率不宜设置太高
 3. 如果出现NAN的情况，请降低学习率
 
-### 致谢
+## 致谢
 感谢以下同仁对仓库代码改进提供的宝贵意见</br>
 1. [Jiachenyin1](https://github.com/Jiachenyin1)
 
-### 自己的设备
-### my device
+## 自己的设备
 GPU : 1660ti (华硕猛禽) 6G</br>
 CPU : i5 9400f</br>
 mem : 16GB</br>
