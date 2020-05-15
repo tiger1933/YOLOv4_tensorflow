@@ -1,15 +1,10 @@
-# YOLOv4_tensorflow | [中文说明](README.md)
+# YOLOv4_tensorflow | [中文说明](README.cn.md)
 * Implement yolov4 with pure tensorflow
 * data enhancement strategies have not been implemented
 * continuous update the code
 </br>
-
 * rdc01234@163.com
 * 277118506@qq.com
-</br>
-
-## The previous work about MISH activation function was wrong, please use the latest code.
-</br>
 
 ## introductions
 * run the following command.
@@ -17,7 +12,6 @@
 python val.py
 ```
 * if have no error, it's ok
-</br>
 
 ### convert yolov4.weights to fit our code
 * refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.
@@ -28,11 +22,8 @@ python test_yolo_weights.py
 ```
 * the ckpt weights file wound exits in the 'yolo_weights' folder
 * and you'll see some images like this, it seems perfect
-
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
-
 * the weights_name.txt contains all model layer's name of the network 
-</br>
 
 ### train on VOC2007 and VOC2012
 * open config.py and modify the **voc_root_dir** to the root of your VOC dataset, modiry the **voc_dir_ls** to the name of VOC dataset witch  you want to train </br>
@@ -90,9 +81,8 @@ python val.py
 3. when the loss value is Nan, please lower your learning rate.
 
 ### Thanks
-* Thanks to the following friends for their valuable comments on code improvements.</br>
-
-[Jiachenyin1](https://github.com/Jiachenyin1)</br>
+Thanks to the following friends for their valuable comments on code improvements.</br>
+1. [Jiachenyin1](https://github.com/Jiachenyin1)
 
 ### my device
 GPU : 1660ti (ASUS) 6G</br>
