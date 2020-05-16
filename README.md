@@ -1,95 +1,93 @@
-# YOLOv4_tensorflow | [中文说明](README.cn.md)
-* Implement yolov4 with pure tensorflow
-* data enhancement strategies have not been implemented
-* continuous update the code
-</br>
+# YOLOv4_tensorflow | [English introductions](README.en.md)
+* yolov4的纯tensorflow实现.
+* 数据增强还没有实现
+* 持续更新
 
+## 二战中科院计算所失败，求老师调剂收留
 * rdc01234@163.com
-* 277118506@qq.com
+* 277118506@qq.com(最好发邮件交流,谢谢)
 
-## introductions
-* run the following command.
+## 使用说明
+* 执行命令
 ```
 python val.py
 ```
-* if have no error, it's ok
+* 如果没有报错, 就没问题
 
-## convert yolov4.weights to fit our code
-* refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), i converted yolov4.weights to this project.
-* **put yolov4.weights into the "yolo_weights" folder, and run the command.**
+## 转换 yolov4.weights
+* 参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中
+* **将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令**
 ```
 python convert_weight.py
 python test_yolo_weights.py
 ```
-* the ckpt weights file wound exits in the 'yolo_weights' folder
-* and you'll see some images like this, it seems perfect
+* 会在 yolo_weights 文件夹下生成 ckpt 权重文件
+* 并且你将会看到这样的画面,完美
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
+* weights_name.txt 文件中存放的是图模型的卷积层和bn的名字
 
-* the weights_name.txt contains all model layer's name of the network 
-
-## train on VOC2007 and VOC2012
-* open config.py and modify the **voc_root_dir** to the root of your VOC dataset, modiry the **voc_dir_ls** to the name of VOC dataset witch  you want to train </br>
-* run the command
+## 在 VOC2007 和 VOC2012 数据集上训练
+* 打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录, voc_dir_ls 修改为自己想要训练的VOC数据集名
+* 执行命令
 ```
 python train_voc.py
 ```
-* put test images into **voc_test_pic** folder, and run the following command after the model training finished.</br>
+* 训练完成后,将测试图片放到 voc_test_pic 文件夹下,执行命令
 ```
 python val_voc.py
 ```
-* it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(364999 steps), not bad
+* 训练一天(364999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
-
-* in addition, the bug of loss sometimes become Nan  when i training on VOC should has been repaired.
-* it's the image of loss value, and seems that the lr is too lower(2e-4), we should set it larger.
+* 此外，在VOC上训练时的 loss nan 问题应该已经被解决了.
+* 这是我训练的损失图，学习率貌似有点太小了
 ```
 python show_loss.py 20 300
 ```
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
 
-## train with own dataset
-* The jpg image and the corresponding json file which marked with **labelme** are stored in the folder **./data/JPEGImages**, just like what I do in the ./data/JPEGImages  folder
-* and then, go to the folder **./data**, execute the following python command, it automatically generates label files and train.txt
+## 在自己的数据集上训练
+* ./data/JPEGImages 文件夹中存放用**labelme**标注**json文件**的jpg图片和对应的json文件, 参考我给的  ./data/JPEGImages 文件夹下的格式
+* 然后在 ./data 文件夹下执行 python 命令, 会自动产生 label 文件和 train.txt 文件
 ```
 python generate_labels.py
 ```
-* excute the python command, to get anchor box
+* 继续执行命令,得到 anchor box
 ```
 python k_means.py
 ```
-* open config.py, write the anchor box to line 6, just like this
+* 打开 config.py, 将得到的 anchor box 写入到第六行，就像这样
 ```
 anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96
 ```
-* and, now, modify the content in **data/train.names** to the category name that you need to train, and change the **class_num** in config.py to your own category number.
-* **all configuration parameters are in the config.py, you can modify them according to your actual situation**
-* ok, that's all, execute the command
+* 接下来，修改 data/train.names 中的内容为你需要训练的分类名字(不要用中文),并且将 config.py 中的分类数改为自己的分类数
+* **所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改**
+* 配置完成,执行命令
 ```
 python train.py
 ```
-* put test images into **test_pic** folder, and run the following command after the model training finished.
+* 训练完成后,将测试图片放到 test_pic 文件夹下,执行命令验证训练结果
 ```
 python val.py
 ```
-* this image is the result of training 5000 steps (25 minutes) with 123 pictures, it looks not bad. 
+* 这是我用123张图片训练了 5000 步(25分钟)的结果，效果还不错
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
-## some tips with config.py and train the model
-1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416
-2. learning rate do not set too large
-3. when the loss value is Nan, please lower your learning rate.
+## 有关 config.py 和训练的提示
+1. config.py 中的 width 和 height 应该是 608，显存不够才调整为 416 的
+2. 学习率不宜设置太高
+3. 如果出现NAN的情况，请降低学习率
 
-## Thanks
-Thanks to the following friends for their valuable comments on code improvements.</br>
+## 致谢
+感谢以下同仁对仓库代码改进提供的宝贵意见</br>
 1. [Jiachenyin1](https://github.com/Jiachenyin1)
 
-## my device
-GPU : 1660ti (ASUS) 6G</br>
+## 自己的设备
+GPU : 1660ti (华硕猛禽) 6G</br>
 CPU : i5 9400f</br>
 mem : 16GB</br>
 os  : ubuntu 18.04</br>
