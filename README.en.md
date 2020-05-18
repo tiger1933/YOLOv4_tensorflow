@@ -1,11 +1,10 @@
-# YOLOv4_tensorflow | [中文说明](README.cn.md)
+# YOLOv4_tensorflow | [中文说明](README.md)
 * Implement yolov4 with pure tensorflow
 * data enhancement strategies have not been implemented
 * continuous update the code
 </br>
 
 * rdc01234@163.com
-* 277118506@qq.com
 
 ## introductions
 * run the following command.
