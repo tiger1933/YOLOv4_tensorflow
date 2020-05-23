@@ -334,7 +334,6 @@ class YOLO():
         conf_loss = conf_loss_obj + conf_loss_no_obj
         conf_loss = tf.clip_by_value(conf_loss, 0.0, 1e3)
         conf_loss = tf.reduce_sum(conf_loss) / N
-        conf_loss = tf.clip_by_value(conf_loss, 0.0, 1e4)
 
         # ciou_loss
         yi_true_ciou = tf.where(tf.math.less(yi_true[..., 0:4], 1e-10),
@@ -392,7 +391,6 @@ class YOLO():
         class_loss = class_loss_no_obj + class_loss_obj        
         class_loss = tf.clip_by_value(class_loss, 0.0, 1e3)
         class_loss = tf.reduce_sum(class_loss) / N
-        class_loss = tf.clip_by_value(class_loss, 0.0, 1e4)
 
         loss_total = xy_loss + wh_loss + conf_loss + class_loss + ciou_loss
         return loss_total
