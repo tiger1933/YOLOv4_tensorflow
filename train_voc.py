@@ -59,13 +59,14 @@ def compute_curr_epoch(global_step, batch_size, imgs_num):
 
 # 训练
 def backward():
-    yolo = YOLO(20, config.voc_anchors, width=config.width, height=config.height)
-    data = Data(config.voc_root_dir, config.voc_dir_ls, "./data/voc.names", 20, config.batch_size, config.voc_anchors, config.multi_scale_img, config.width, config.height)
+    class_num = config.voc_class_num
+    yolo = YOLO(class_num, config.voc_anchors, width=config.width, height=config.height)
+    data = Data(config.voc_root_dir, config.voc_dir_ls, "./data/voc.names", class_num, config.batch_size, config.voc_anchors, config.multi_scale_img, config.width, config.height)
 
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3])
-    y1_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+20])
-    y2_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+20])
-    y3_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+20])
+    y1_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+class_num])
+    y2_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+class_num])
+    y3_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+class_num])
     
     feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, weight_decay=config.weight_decay, isTrain=True)
 
