@@ -15,6 +15,7 @@ python val.py
 
 ## 转换 yolov4.weights
 * 参考[这个权重转换文件](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), 我将 yolov4.weights 转换到了自己的代码中
+* [yolov4.weights百度云链接](https://pan.baidu.com/s/1oMTW2dI8IrgGcqxn90fr_Q) 提取码: pqe2
 * **将下载好的 yolov4.weights 放到 yolo_weights 文件夹下, 执行命令**
 ```
 python convert_weight.py
