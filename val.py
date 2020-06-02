@@ -11,6 +11,7 @@ session = InteractiveSession(config=config)
 import tensorflow as tf
 import config
 from utils import tools
+from utils import data_augment
 from src.YOLO import YOLO
 import cv2
 import numpy as np
@@ -30,7 +31,10 @@ def read_img(img_name, width, height):
     img_ori = tools.read_img(img_name)
     if img_ori is None:
         return None, None
-    img = cv2.resize(img_ori, (width, height))
+    if config.keep_img_shape:
+        img = data_augment.keep_image_shape_resize(img_ori, size=[width, height])
+    else:
+        img = cv2.resize(img_ori, (width, height))
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float32)
     img = img/255.0
@@ -103,8 +107,9 @@ def main():
             cv2.imshow('img', img_ori)
             cv2.waitKey(0)
 
-            if config.save_img:
-                save_img(img_ori, name)
+            # if config.save_img:
+            #     save_img(img_ori, name)
+            pass
 
 if __name__ == "__main__":
     Log.add_log("message:进入 val.main() 函数")

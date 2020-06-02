@@ -3,17 +3,17 @@
 import numpy as np
 from src import Log
 from utils import tools
+from utils import data_augment
 import random
 import cv2
 
 class Data():
-    def __init__(self, data_file, class_num, batch_size, anchors, multi_scale_img=True, width=608, height=608):
+    def __init__(self, data_file, class_num, batch_size, anchors, agument, width=608, height=608):
         self.data_file = data_file  # 数据文件
         self.class_num = class_num  # 分类数
         self.batch_size = batch_size
         self.anchors = np.asarray(anchors).astype(np.float32).reshape([-1, 2]) / [width, height]     #[9,2]
         print("anchors:\n", self.anchors)
-        self.multi_scale_img = multi_scale_img  # 多尺度缩放图片
 
         self.imgs_path = []
         self.labels_path = []
@@ -22,12 +22,25 @@ class Data():
 
         self.width = width
         self.height = height
+        self.agument = agument  # data agument strategy
+
+        self.smooth_delta = 0.01 # label smooth delta
 
         # 初始化各项参数
         self.__init_args()
     
     # 初始化各项参数
     def __init_args(self):
+        print("data agument strategy : ", self.agument)
+        # 初始化数据增强策略的参数
+        self.multi_scale_img = self.agument[0] # 多尺度缩放图片
+        self.keep_img_shape = self.agument[1]   # keep image's shape when we reshape the image
+        self.flip_img = self.agument[2]    # flip image
+        self.gray_img = self.agument[3]        # gray image
+        self.label_smooth = self.agument[4]    # label smooth strategy
+        self.erase_img = self.agument[5]        # random erase image
+        self.invert_img = self.agument[6]                  # invert image pixel
+
         Log.add_log("message:开始初始化路径")
 
         # init imgs path
@@ -55,7 +68,29 @@ class Data():
         img = tools.read_img(img_file)
         if img is None:
             return None
-        img = cv2.resize(img, (self.width, self.height))
+
+        if self.keep_img_shape:
+            # keep image shape when we reshape the image
+            img = data_augment.keep_image_shape_resize(img, size=[self.width, self.height])
+        else:
+            img = cv2.resize(img, (self.width, self.height))
+
+        if self.flip_img:
+            # flip image
+            img = data_augment.flip_img(img)
+        
+        if self.gray_img and (np.random.random() < 0.2):
+            # probility of gray image is 0.2
+            img = data_augment.gray_img(img)
+        
+        if self.erase_img and (np.random.random() < 0.3):
+            # probility of random erase image is 0.3
+            img = data_augment.erase_img(img)
+        
+        if self.invert_img and (np.random.random() < 0.1):
+            # probility of invert image is 0.1
+            img = data_augment.invert_img(img)
+
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = img.astype(np.float32)
         img = img/255.0
@@ -85,6 +120,9 @@ class Data():
                 raise ValueError(str(label_file) + ":标签数量错误")
             label_id = int(label[0])
             box = np.asarray(label[1: 5]).astype(np.float32)   # label中保存的就是 x,y,w,h
+            # flip the label
+            if self.flip_img:
+                box[0] = 1.0 - box[0]
 
             best_giou = 0
             best_index = 0
@@ -102,8 +140,10 @@ class Data():
             k = best_index % 3
 
             y_true[best_index // 3][y, x, k, 0:4] = box
-            y_true[best_index // 3][y, x, k, 4:5] = 1.0
-            y_true[best_index // 3][y, x, k, 5 + label_id] = 1.0
+            # label smooth
+            label_value = 1.0  if not self.label_smooth else ((1-self.smooth_delta) + self.smooth_delta * 1 / self.class_num)
+            y_true[best_index // 3][y, x, k, 4:5] = label_value
+            y_true[best_index // 3][y, x, k, 5 + label_id] = label_value
         
         return label_y1, label_y2, label_y3
 
@@ -116,7 +156,7 @@ class Data():
         '''
         # 十个 batch 随机一次 size 
         if self.multi_scale_img and (self.num_batch % 10 == 0):
-            random_size = random.randint(10, 19) * 32
+            random_size = random.randint(13, 23) * 32
             self.width = self.height = random_size
         
         imgs = []
@@ -127,6 +167,12 @@ class Data():
             curr_index = random.randint(0, len(self.imgs_path) - 1)
             img_name = self.imgs_path[curr_index]
             label_name = self.labels_path[curr_index]
+
+            # probility of  flip image is 0.5
+            if self.agument[2]  and (np.random.random() < 0.5):
+                self.flip_img = True
+            else:
+                self.flip_img = False
 
             img = self.read_img(img_name)
             label_y1, label_y2, label_y3 = self.read_label(label_name)

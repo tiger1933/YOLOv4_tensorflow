@@ -7,7 +7,6 @@ anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
 model_path = "./checkpoint/"
 model_name = "model"
 name_file = './data/train.names'                # 自己的数据集的名字
-keep_img_shape = False              # resize时保持图片形状;目前仅仅用于 yolov4.weights 的测试
 
 # ############# 日志 #############
 log_dir = './log'
@@ -18,6 +17,13 @@ loss_name = 'loss.txt'
 train_file = './data/train.txt'
 batch_size = 2
 multi_scale_img = False     # 多尺度缩放图片训练
+keep_img_shape = True              # resize时保持图片形状
+flip_img = True                # 翻转图片
+gray_img = True             # 灰度化图片
+label_smooth = True     # 标签平滑  
+erase_img = True            # 随机擦除  
+invert = True                       # 图片像素取反           
+data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smooth, erase_img, invert] # 数据增强策略
 total_epoch = 300       # 一共训练多少 epoch
 save_step = 5000        # 多少步保存一次
 

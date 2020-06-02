@@ -60,7 +60,7 @@ def compute_curr_epoch(global_step, batch_size, imgs_num):
 # 训练
 def backward():
     yolo = YOLO(config.class_num, config.anchors, width=config.width, height=config.height)
-    data = Data(config.train_file, config.class_num, config.batch_size, config.anchors, config.multi_scale_img, width=config.width, height=config.height)
+    data = Data(config.train_file, config.class_num, config.batch_size, config.anchors, config.data_augment, width=config.width, height=config.height)
     
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3])
     y1_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[config.batch_size, None, None, 3, 4+1+config.class_num])
