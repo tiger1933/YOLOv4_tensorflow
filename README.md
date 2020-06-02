@@ -1,6 +1,6 @@
 # YOLOv4_tensorflow | [中文说明](README.cn.md)
 * Implement yolov4 with pure tensorflow
-*  implemented the part of data enhancement strategies
+*  implemented the part of data augment strategies
 * continuous update the code
 * we will update the result image soon
 </br>
@@ -44,6 +44,7 @@ python val_voc.py
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
 
+* **all configuration parameters are in the config.py, you can modify them according to your actual situation**
 * in addition, the bug of loss sometimes become Nan  when i training on VOC should has been repaired.
 * it's the image of loss value, and seems that the lr is too lower(2e-4), we should set it larger.
 ```

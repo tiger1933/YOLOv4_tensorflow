@@ -42,6 +42,7 @@ python val_voc.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
+* **所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改**
 * 此外，在VOC上训练时的 loss nan 问题应该已经被解决了.
 * 这是我训练的损失图，学习率貌似有点太小了
 ```
