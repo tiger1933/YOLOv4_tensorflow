@@ -125,7 +125,7 @@ def backward():
 
             if (step+1) % config.save_step == 0:
                 Log.add_log("message:当前运行模型保存, step=" + str(step) +", lr=" + str(lr_))
-                saver.save(sess, path.join(config.model_path, config.model_name), global_step=0)
+                saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)
 
         Log.add_log("message:训练完成保存模型, step=" + str(step))
         saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)

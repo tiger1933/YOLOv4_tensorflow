@@ -26,7 +26,7 @@ invert_img = True                       # 图片像素取反
 rotate_img = False               # rotate image and do not set it as True
 data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smooth, erase_img, invert_img, rotate_img] # 数据增强策略
 total_epoch = 300       # 一共训练多少 epoch
-save_step = 1000        # 多少步保存一次
+save_step = 10000        # 多少步保存一次
 data_debug = False       # load data in debug model
 
 cls_normalizer = 1.0    # 置信度损失系数
