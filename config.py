@@ -18,15 +18,16 @@ train_file = './data/train.txt'
 batch_size = 2
 multi_scale_img = False     # 多尺度缩放图片训练
 keep_img_shape = True              # resize时保持图片形状
-flip_img = True                # 翻转图片
+flip_img = False                # 翻转图片
 gray_img = True             # 灰度化图片
 label_smooth = True     # 标签平滑  
 erase_img = True            # 随机擦除  
 invert_img = True                       # 图片像素取反           
-rotate_img = True               # rotate image
+rotate_img = False               # rotate image and do not set it as True
 data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smooth, erase_img, invert_img, rotate_img] # 数据增强策略
 total_epoch = 300       # 一共训练多少 epoch
-save_step = 5000        # 多少步保存一次
+save_step = 1000        # 多少步保存一次
+data_debug = False       # load data in debug model
 
 cls_normalizer = 1.0    # 置信度损失系数
 ignore_thresh = 0.7     # 与真值 iou / giou 小于这个阈值就认为没有预测物体
@@ -36,7 +37,7 @@ score_thresh = 0.25     # 分类得分阈值
 # 学习率配置
 lr_init = 2e-4                      # 初始学习率	# 0.00261
 lr_lower =1e-6                  # 最低学习率    
-lr_type = 'piecewise'   # 学习率类型 'exponential', 'piecewise', 'constant'
+lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
 piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
 piecewise_values = [2e-4, 1e-4, 1e-4]
 

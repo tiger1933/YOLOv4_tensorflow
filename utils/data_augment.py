@@ -19,7 +19,7 @@ def keep_image_shape_resize(bgr_img, size=[416, 416]):
     img = np.full(shape=[target_h, target_w, 3], fill_value=0, dtype=np.uint8)
     dw, dh = (target_w - nw)//2, (target_h - nh)//2
     img[dh:(nh+dh), dw:(nw+dw), :] = img_resize
-    return img
+    return img, nw, nh
 
 
 # 翻转图片

@@ -137,13 +137,19 @@ def draw_img(img, boxes, score, label, word_dict, color_table,):
         boxes[i][3] = constrait(boxes[i][3], 0, 1)
         x_min, x_max = int(boxes[i][0] * w), int(boxes[i][2] * w)
         y_min, y_max = int(boxes[i][1] * h), int(boxes[i][3] * h)
+        
+        curr_label = label[i] if label is not None else 0
+        curr_color = color_table[curr_label] if color_table is not None else (0, 125, 125)
+        
         # 画框
-        cv2.rectangle(img, (x_min, y_min), (x_max, y_max), color_table[label[i]])
+        cv2.rectangle(img, (x_min, y_min), (x_max, y_max), curr_color)
         # 写字
-        text_name = "{}".format(word_dict[label[i]])
-        cv2.putText(img, text_name, (x_min, y_min + 25), font, 1, color_table[label[i]])
-        text_score = "{:2d}%".format(int(score[i] * 100))
-        cv2.putText(img, text_score, (x_min, y_min), font, 1, color_table[label[i]])
+        if word_dict is not None:
+            text_name = "{}".format(word_dict[curr_label])
+            cv2.putText(img, text_name, (x_min, y_min + 25), font, 1, curr_color)
+        if score is not None:
+            text_score = "{:2d}%".format(int(score[i] * 100))
+            cv2.putText(img, text_score, (x_min, y_min), font, 1, curr_color)
     return img
 
 

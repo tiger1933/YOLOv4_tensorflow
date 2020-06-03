@@ -10,7 +10,7 @@ import os
 from os import path
 
 class Data():
-    def __init__(self, voc_root_dir, voc_dir_ls, voc_names, class_num, batch_size, anchors, agument, width=608, height=608):
+    def __init__(self, voc_root_dir, voc_dir_ls, voc_names, class_num, batch_size, anchors, agument, width=608, height=608, data_debug=False):
         self.data_dirs = [path.join(path.join(voc_root_dir, voc_dir), "JPEGImages") for voc_dir in voc_dir_ls]  # 数据文件路径
         self.class_num = class_num  # 分类数
         self.batch_size = batch_size
@@ -22,6 +22,8 @@ class Data():
 
         self.num_batch = 0      # 多少个 batch 了
         self.num_imgs = 0       # 一共多少张图片
+
+        self.data_debug = data_debug
 
         self.width = width
         self.height = height
@@ -83,9 +85,10 @@ class Data():
 
         if self.keep_img_shape:
             # keep image shape when we reshape the image
-            img = data_augment.keep_image_shape_resize(img, size=[self.width, self.height])
+            img, new_w, new_h = data_augment.keep_image_shape_resize(img, size=[self.width, self.height])
         else:
             img = cv2.resize(img, (self.width, self.height))
+            new_w, new_h = None, None
 
         if self.flip_img:
             # flip image
@@ -107,15 +110,19 @@ class Data():
             # rotation image
             img = data_augment.random_rotate_img(img)
 
+        test_img = img
+
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = img.astype(np.float32)
         img = img/255.0
-        return img
+        return img, new_w, new_h, test_img
     
     # 读取标签
-    def read_label(self, label_file, names_dict):
+    def read_label(self, label_file, names_dict, anchors, new_w, new_h):
         '''
         读取 label_file, 并生成 label_y1, label_y2, label_y3
+        new_w:缩放以后的图片宽,真值
+        new_h:缩放以后的图片高,真值
         return:label_y1, label_y2, label_y3
         '''
         contents = tools.parse_voc_xml(label_file, names_dict)  
@@ -127,6 +134,10 @@ class Data():
             for i in range(len(contents)):
                 contents[i][1] = 1.0 - contents[i][1]
 
+        if self.keep_img_shape:
+            x_pad = (self.width - new_w) // 2
+            y_pad = (self.height - new_h) // 2
+
         label_y1 = np.zeros((self.height // 32, self.width // 32, 3, 5 + self.class_num), np.float32)
         label_y2 = np.zeros((self.height // 16, self.width // 16, 3, 5 + self.class_num), np.float32)
         label_y3 = np.zeros((self.height // 8, self.width // 8, 3, 5 + self.class_num), np.float32)
@@ -134,15 +145,23 @@ class Data():
         y_true = [label_y3, label_y2, label_y1]
         ratio = {0:8, 1:16, 2:32}
 
+        test_result = []
+
         for label in contents:
             label_id = int(label[0])
             box = np.asarray(label[1: 5]).astype(np.float32)   # label中保存的就是 x,y,w,h
-
+            if self.keep_img_shape:
+                # 加入填充的黑边宽高，重新修正坐标
+                box[0:2] = (box[0:2] * [new_w, new_h ] + [x_pad, y_pad]) / [self.width, self.height]
+                box[2:4] = (box[2:4] * [new_w, new_h]) / [self.width, self.height]  
+            
+            test_result.append([box[0]-box[2]/2, box[1]-box[3]/2, box[0]+box[2]/2, box[1]+box[3]/2])
+            
             best_giou = 0
             best_index = 0
-            for i in range(len(self.anchors)):
-                min_wh = np.minimum(box[2:4], self.anchors[i])
-                max_wh = np.maximum(box[2:4], self.anchors[i])
+            for i in range(len(anchors)):
+                min_wh = np.minimum(box[2:4], anchors[i])
+                max_wh = np.maximum(box[2:4], anchors[i])
                 giou = (min_wh[0] * min_wh[1]) / (max_wh[0] * max_wh[1])
                 if giou > best_giou:
                     best_giou = giou
@@ -159,7 +178,7 @@ class Data():
             y_true[best_index // 3][y, x, k, 4:5] = label_value
             y_true[best_index // 3][y, x, k, 5 + label_id] = label_value
         
-        return label_y1, label_y2, label_y3
+        return label_y1, label_y2, label_y3, test_result
 
 
     # 加载 batch_size 的数据
@@ -188,8 +207,15 @@ class Data():
             else:
                 self.flip_img = False
 
-            img = self.read_img(img_name)
-            label_y1, label_y2, label_y3 = self.read_label(label_name, self.names_dict)
+            img, new_w, new_h, test_img = self.read_img(img_name)
+            label_y1, label_y2, label_y3, test_result = self.read_label(label_name, self.names_dict, self.anchors, new_w, new_h)
+            
+            # 显示最后的结果
+            if self.data_debug:
+                test_img = tools.draw_img(test_img, test_result, None, None, None, None)
+                cv2.imshow("letterbox_img", test_img)
+                cv2.waitKey(0)
+            
             if img is None:
                 Log.add_log("VOC 文件'" + img_name + "'读取异常")
                 continue
