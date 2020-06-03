@@ -40,6 +40,7 @@ class Data():
         self.label_smooth = self.agument[4]    # label smooth strategy
         self.erase_img = self.agument[5]        # random erase image
         self.invert_img = self.agument[6]                  # invert image pixel
+        self.rotate_img = self.agument[7]           # rotate image
 
         Log.add_log("message:开始初始化路径")
 
@@ -90,6 +91,10 @@ class Data():
         if self.invert_img and (np.random.random() < 0.1):
             # probility of invert image is 0.1
             img = data_augment.invert_img(img)
+
+        if self.rotate_img:
+            # rotation image
+            img = data_augment.random_rotate_img(img)
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
         img = img.astype(np.float32)

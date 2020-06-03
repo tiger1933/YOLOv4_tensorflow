@@ -22,8 +22,9 @@ flip_img = True                # 翻转图片
 gray_img = True             # 灰度化图片
 label_smooth = True     # 标签平滑  
 erase_img = True            # 随机擦除  
-invert = True                       # 图片像素取反           
-data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smooth, erase_img, invert] # 数据增强策略
+invert_img = True                       # 图片像素取反           
+rotate_img = True               # rotate image
+data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smooth, erase_img, invert_img, rotate_img] # 数据增强策略
 total_epoch = 300       # 一共训练多少 epoch
 save_step = 5000        # 多少步保存一次
 
@@ -35,7 +36,7 @@ score_thresh = 0.25     # 分类得分阈值
 # 学习率配置
 lr_init = 2e-4                      # 初始学习率	# 0.00261
 lr_lower =1e-6                  # 最低学习率    
-lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
+lr_type = 'piecewise'   # 学习率类型 'exponential', 'piecewise', 'constant'
 piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
 piecewise_values = [2e-4, 1e-4, 1e-4]
 

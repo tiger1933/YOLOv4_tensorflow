@@ -114,7 +114,13 @@ def backward():
             end = time.perf_counter()
             print("step: %6d, loss: %.5g\t, w: %3d, h: %3d, lr:%.5g\t, time: %5f s"
                          %(step, loss_, data.width, data.height, lr_, end-start))
-                         
+            
+            if (loss_ > 1e3) and (step > 1e3):
+                Log.add_log("error:loss exception, loss_value = "+str(loss_))
+                ''' break the process or lower learning rate '''
+                raise ValueError("error:loss exception, loss_value = "+str(loss_)+", please lower your learning rate")
+                # lr = tf.math.maximum(tf.math.divide(lr, 10), config.lr_lower)
+
             if step % 5 == 2:
                 Log.add_loss(str(step) + "\t" + str(loss_))
 

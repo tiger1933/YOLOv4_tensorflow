@@ -60,3 +60,13 @@ def invert_img(bgr_img):
     ''' bgr_img:cv2 image (BGR) '''
     bgr_img = 255 - bgr_img
     return bgr_img
+
+# 旋转图片
+def random_rotate_img(bgr_img, angle_min=-6, angle_max=6):
+    ''' bgr_img:cv2 image (BGR) '''
+    angle = np.random.randint(angle_min, angle_max)
+    height = bgr_img.shape[0]
+    width = bgr_img.shape[1]
+    M = cv2.getRotationMatrix2D((height/2.0, width/2.0),angle,1)
+    bgr_img = cv2.warpAffine(bgr_img,M,(width,height))
+    return bgr_img
