@@ -30,15 +30,19 @@ def read_img(img_name, width, height):
     if img_ori is None:
         return None, None
     if config.keep_img_shape:
-        img = data_augment.keep_image_shape_resize(img_ori, size=[width, height])
+        img, nw, nh = data_augment.keep_image_shape_resize(img_ori, size=[width, height])
     else:
         img = cv2.resize(img_ori, (width, height))
+        nw, nh = None, None
+
+    show_img = img
+
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = img.astype(np.float32)
     img = img/255.0
     # [416, 416, 3] => [1, 416, 416, 3]
     img = np.expand_dims(img, 0)
-    return img, img_ori
+    return img, nw, nh, img_ori, show_img
 
 # 保存图片
 def save_img(img, name):
@@ -75,7 +79,7 @@ def main():
             Log.add_log("message:存在 ckpt 模型:'"+str(ckpt.model_checkpoint_path)+"'")
         else:
             Log.add_log("message:不存在 ckpt 模型")
-            exit(1)
+            # exit(1)
 
         # 名字字典
         word_dict = tools.get_word_dict(config.voc_names)
@@ -93,7 +97,7 @@ def main():
 
             start = time.perf_counter()
 
-            img, img_ori = read_img(img_name, width, height)
+            img, nw, nh, img_ori, show_img = read_img(img_name, width, height)
             if img is None:
                 Log.add_log("message:'"+str(img)+"'图片读取错误")
             boxes, score, label = sess.run([pre_boxes, pre_score, pre_label], feed_dict={inputs:img})
@@ -101,6 +105,16 @@ def main():
             end = time.perf_counter()
             print("%s\t, time:%f s" %(img_name, end-start))
 
+            if config.keep_img_shape:
+                # 纠正坐标
+                dw = (width - nw)/2
+                dh = (height - nh)/2
+                for i in range(len(boxes)):
+                    boxes[i][0] = (boxes[i][0] * width - dw)/nw
+                    boxes[i][1] = (boxes[i][1] * height - dh)/nh
+                    boxes[i][2] = (boxes[i][2] * width - dw)/nw
+                    boxes[i][3] = (boxes[i][3] * height - dh)/nh
+           
             img_ori = tools.draw_img(img_ori, boxes, score, label, word_dict, color_table)
 
             cv2.imshow('img', img_ori)
