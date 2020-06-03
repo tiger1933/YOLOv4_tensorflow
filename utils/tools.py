@@ -139,7 +139,7 @@ def draw_img(img, boxes, score, label, word_dict, color_table,):
         y_min, y_max = int(boxes[i][1] * h), int(boxes[i][3] * h)
         
         curr_label = label[i] if label is not None else 0
-        curr_color = color_table[curr_label] if color_table is not None else (0, 125, 125)
+        curr_color = color_table[curr_label] if color_table is not None else (0, 125, 255)
         
         # 画框
         cv2.rectangle(img, (x_min, y_min), (x_max, y_max), curr_color)

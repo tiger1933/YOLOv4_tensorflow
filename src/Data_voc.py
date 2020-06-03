@@ -176,6 +176,7 @@ class Data():
             # label smooth
             label_value = 1.0  if not self.label_smooth else ((1-self.smooth_delta) + self.smooth_delta * 1 / self.class_num)
             y_true[best_index // 3][y, x, k, 4:5] = label_value
+            y_true[best_index // 3][y, x, k, 5:-1] = 0.0 if not self.label_smooth else self.smooth_delta / self.class_num
             y_true[best_index // 3][y, x, k, 5 + label_id] = label_value
         
         return label_y1, label_y2, label_y3, test_result
@@ -204,6 +205,7 @@ class Data():
             # probility of  flip image is 0.5
             if self.agument[2]  and (np.random.random() < 0.5):
                 self.flip_img = True
+                # print("flip")
             else:
                 self.flip_img = False
 

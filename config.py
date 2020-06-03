@@ -19,7 +19,7 @@ batch_size = 2
 multi_scale_img = False     # 多尺度缩放图片训练
 keep_img_shape = False              # resize时保持图片形状
 flip_img = True                # 翻转图片
-gray_img = False             # 灰度化图片
+gray_img = True             # 灰度化图片
 label_smooth = True     # 标签平滑  
 erase_img = True            # 随机擦除  
 invert_img = False                       # 图片像素取反           
@@ -35,7 +35,7 @@ prob_thresh = 0.25      # 分类概率的阈值
 score_thresh = 0.25     # 分类得分阈值
 
 # 学习率配置
-lr_init = 2e-4                      # 初始学习率	# 0.00261
+lr_init = 1e-4                      # 初始学习率	# 0.00261
 lr_lower =1e-6                  # 最低学习率    
 lr_type = 'constant'   # 学习率类型 'exponential', 'piecewise', 'constant'
 piecewise_boundaries = [1, 2]   # 单位:epoch, for piecewise
@@ -60,7 +60,7 @@ height = 416                    # 图片高
 
 # ############## VOC训练 ##############
 voc_root_dir = "/home/random/下载/VOC_dataset"  # voc 数据集存放的根目录
-voc_dir_ls = ['2007_trainval', '2012_trainval']                # 使用的voc数据集名字
+voc_dir_ls = ['2007_trainval']#, '2012_trainval']                # 使用的voc数据集名字
 voc_test_dir = "./voc_test_pic"                                                 # voc 数据集的测试图片
 voc_save_dir = "./voc_save"                                                     # voc 数据集保存的图片
 voc_model_path = "./VOC"                                                        # voc 模型保存路径
