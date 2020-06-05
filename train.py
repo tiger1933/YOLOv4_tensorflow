@@ -16,6 +16,8 @@ import config
 import time
 import numpy as np
 from src import Log
+# for save pb file
+from tensorflow.python.framework import graph_util
 
 # 配置优化器
 def config_optimizer(optimizer_name, lr_init, momentum=0.99):
@@ -124,11 +126,31 @@ def backward():
                 Log.add_loss(str(step) + "\t" + str(loss_))
 
             if (step+1) % config.save_step == 0:
-                Log.add_log("message:当前运行模型保存, step=" + str(step) +", lr=" + str(lr_))
-                saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)
+                # save ckpt model
+                if config.save_ckpt_model:
+                    Log.add_log("message: save ckpt model, step=" + str(step) +", lr=" + str(lr_))
+                    saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)                  
+                if config.save_pb_model:
+                    Log.add_log("message: save pb model, step="+str(step))
+                    pb_model_name = path.join(config.model_path, config.model_name) + '-' + str(step) + ".pb"
+                    constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph_def, ['yolo/Conv_1/BiasAdd', 'yolo/Conv_9/BiasAdd', 'yolo/Conv_17/BiasAdd'])
+                    # save  PB model
+                    with tf.gfile.FastGFile(pb_model_name, mode='wb') as f:
+                        f.write(constant_graph.SerializeToString())
 
-        Log.add_log("message:训练完成保存模型, step=" + str(step))
-        saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)
+        # save ckpt model
+        if config.save_ckpt_model:
+            Log.add_log("message:save final ckpt model, step=" + str(step))
+            saver.save(sess, path.join(config.model_path, config.model_name), global_step=step)
+
+        # save pb model
+        if config.save_pb_model:
+            Log.add_log("message: save final pb model, step="+str(step))
+            pb_model_name = path.join(config.model_path, config.model_name) + '-' + str(step) + ".pb"
+            constant_graph = graph_util.convert_variables_to_constants(sess, sess.graph_def, ['yolo/Conv_1/BiasAdd', 'yolo/Conv_9/BiasAdd', 'yolo/Conv_17/BiasAdd'])
+            # save  PB model
+            with tf.gfile.FastGFile(pb_model_name, mode='wb') as f:
+                f.write(constant_graph.SerializeToString())
     return 0
 
 

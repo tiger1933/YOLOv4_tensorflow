@@ -41,8 +41,8 @@ class YOLO():
                     # [N, 76, 76, 256] => [N, 76, 76, 255]
                     net = slim.conv2d(net, 3*(4+1+self.class_num), 1,
                                                         stride=1, normalizer_fn=None,
-                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())
-                    feature_y3 = net
+                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())  # ,scope="feature_y3"
+                    feature_y3 = net    # yolo/Conv_1/BiasAdd:0
 
                     # 计算 y2 特征
                     # [N, 76, 76, 128] => [N, 38, 38, 256]
@@ -56,8 +56,8 @@ class YOLO():
                     # [N, 38, 38, 512] => [N, 38, 38, 255]
                     net = slim.conv2d(net, 3*(4+1+self.class_num), 1,
                                                         stride=1, normalizer_fn=None,
-                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())
-                    feature_y2 = net
+                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())  # , scope="feature_y2"
+                    feature_y2 = net    # yolo/Conv_9/BiasAdd:0
 
                     # 计算 y3 特征
                     # [N, 38, 38, 256] => [N, 19, 19, 512]
@@ -67,8 +67,8 @@ class YOLO():
                     # [N, 19, 19, 1024] => [N, 19, 19, 255]
                     net = slim.conv2d(net, 3*(4+1+self.class_num), 1,
                                                         stride=1, normalizer_fn=None,
-                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())
-                    feature_y1 = net
+                                                        activation_fn=None, biases_initializer=tf.zeros_initializer())  #, scope="feature_y1"
+                    feature_y1 = net    # yolo/Conv_17/BiasAdd:0
 
         return feature_y1, feature_y2, feature_y3
 

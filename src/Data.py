@@ -33,7 +33,7 @@ class Data():
     
     # 初始化各项参数
     def __init_args(self):
-        print("data agument strategy : ", self.agument)
+        Log.add_log("data agument strategy : "+str(self.agument))
         # 初始化数据增强策略的参数
         self.multi_scale_img = self.agument[0] # 多尺度缩放图片
         self.keep_img_shape = self.agument[1]   # keep image's shape when we reshape the image
