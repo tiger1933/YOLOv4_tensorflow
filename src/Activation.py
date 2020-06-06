@@ -9,29 +9,8 @@ class activation(Enum):
     RELU = 3        # relu 激活
 
 def activation_fn(inputs, name, alpha=0.1):
-    if name is activation.MISH:
-        # 阈值
-        MISH_THRESH = 20.0
-
-        # tmp = inputs
-
-        # mid = tf.where(
-        #                             tf.math.logical_and(tf.less(inputs, MISH_THRESH), tf.greater(inputs, -MISH_THRESH)),
-        #                             inputs, 
-        #                             tf.zeros_like(inputs)
-        #                         )
-        # mid = tf.log(1 + tf.exp(mid))
-
-        # greater = tf.where(tf.greater(tmp, MISH_THRESH), tmp, tf.zeros_like(inputs))
-        # less = tf.where(tf.less(tmp, -MISH_THRESH), 
-        #                                         tf.exp(tmp), 
-        #                                         tf.zeros_like(inputs))
-        
-        # inputs = tf.where(tf.greater(tmp, MISH_THRESH), greater, inputs)
-        # inputs = tf.where(tf.less(tmp, -MISH_THRESH), less, inputs)
-        # inputs = tf.where(
-        #                         tf.math.logical_and(tf.less(inputs, MISH_THRESH), tf.greater(inputs, -MISH_THRESH)),
-        #                         mid, inputs)
+    if name is activation.MISH:        
+        MISH_THRESH = 20.0        # 阈值
         tmp = inputs
 
         inputs = tf.where(
