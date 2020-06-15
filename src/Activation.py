@@ -1,16 +1,16 @@
 # coding:utf-8
-# 激活函数的实现
+# Implementation of activation function
 from enum import Enum
 import tensorflow as tf
 
 class activation(Enum):
-    MISH = 1        # mish 激活
+    MISH = 1        # mish activation
     LEAKY_RELU = 2  # leaky_relu
-    RELU = 3        # relu 激活
+    RELU = 3        # relu activation
 
 def activation_fn(inputs, name, alpha=0.1):
     if name is activation.MISH:        
-        MISH_THRESH = 20.0        # 阈值
+        MISH_THRESH = 20.0        # thresh in yolov4
         tmp = inputs
 
         inputs = tf.where(
@@ -31,5 +31,5 @@ def activation_fn(inputs, name, alpha=0.1):
     elif name is None:
         return inputs
     else:
-        ValueError("没有激活函数为'"+str(name) + "'")
+        ValueError("can not find activation named "+str(name) + "'")
     return None

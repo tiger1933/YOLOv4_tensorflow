@@ -1,5 +1,5 @@
 # coding:utf-8
-# YOLO实现
+# implement YOLO
 import tensorflow as tf
 from src import module
 import numpy as np
@@ -24,7 +24,6 @@ class YOLO():
         }
 
         with slim.arg_scope([slim.conv2d, slim.batch_norm], reuse=reuse):
-            # darknet53 特征
             # [N, 19, 19, 512], [N, 38, 38, 256], [N, 76, 76, 128]
             route_1, route_2, route_3 = module.extraction_feature(inputs, batch_norm_params, weight_decay)
             
@@ -35,7 +34,7 @@ class YOLO():
                                 activation_fn=lambda x: tf.nn.leaky_relu(x, alpha=0.1),
                                 weights_regularizer=slim.l2_regularizer(weight_decay)):
                 with tf.variable_scope('yolo'):
-                    # 计算 y1 特征
+                    # features of y1
                     # [N, 76, 76, 128] => [N, 76, 76, 256]
                     net = module.conv(route_1, 256)
                     # [N, 76, 76, 256] => [N, 76, 76, 255]
@@ -44,7 +43,7 @@ class YOLO():
                                                         activation_fn=None, biases_initializer=tf.zeros_initializer())  # ,scope="feature_y3"
                     feature_y3 = net    # yolo/Conv_1/BiasAdd:0
 
-                    # 计算 y2 特征
+                    # features of  y2
                     # [N, 76, 76, 128] => [N, 38, 38, 256]
                     net = module.conv(route_1, 256, stride=2)
                     # [N, 38, 38, 512]
@@ -59,7 +58,7 @@ class YOLO():
                                                         activation_fn=None, biases_initializer=tf.zeros_initializer())  # , scope="feature_y2"
                     feature_y2 = net    # yolo/Conv_9/BiasAdd:0
 
-                    # 计算 y3 特征
+                    # features of  y3
                     # [N, 38, 38, 256] => [N, 19, 19, 512]
                     net = module.conv(route_147, 512, stride=2)
                     net = tf.concat([net, route_3], -1)
@@ -72,14 +71,14 @@ class YOLO():
 
         return feature_y1, feature_y2, feature_y3
 
-    # 计算最大的 IOU, GIOU
+    # IOU, GIOU
     def IOU(self, pre_xy, pre_wh, valid_yi_true):
         '''
             pre_xy : [13, 13, 3, 2]
             pre_wh : [13, 13, 3, 2]
             valid_yi_true : [V, 5 + class_num] or [V, 4]
             return:
-                iou, giou : [13, 13, 3, V], V表示V个真值
+                iou, giou : [13, 13, 3, V]
         '''
 
         # [13, 13, 3, 2] ==> [13, 13, 3, 1, 2]
@@ -90,43 +89,42 @@ class YOLO():
         yi_true_xy = valid_yi_true[..., 0:2]
         yi_true_wh = valid_yi_true[..., 2:4]
 
-        # 相交区域左上角坐标 : [13, 13, 3, 1, 2] & [V, 2] ==> [13, 13, 3, V, 2]
+        # left top of Intersection : [13, 13, 3, 1, 2] & [V, 2] ==> [13, 13, 3, V, 2]
         intersection_left_top = tf.maximum((pre_xy - pre_wh / 2), (yi_true_xy - yi_true_wh / 2))
-        # 相交区域右下角坐标
+        # right bottom of Intersection
         intersection_right_bottom = tf.minimum((pre_xy + pre_wh / 2), (yi_true_xy + yi_true_wh / 2))
-        # 并集区域左上角坐标 
+        # left top of Union 
         combine_left_top = tf.minimum((pre_xy - pre_wh / 2), (yi_true_xy - yi_true_wh / 2))
-        # 并集区域右下角坐标
+        # right bottom of Union
         combine_right_bottom = tf.maximum((pre_xy + pre_wh / 2), (yi_true_xy + yi_true_wh / 2))
 
-        # 相交区域宽高 [13, 13, 3, V, 2] == > [13, 13, 3, V, 2]
+        # height and width of intersection [13, 13, 3, V, 2] == > [13, 13, 3, V, 2]
         intersection_wh = tf.maximum(intersection_right_bottom - intersection_left_top, 0.0)
-        # 并集区域宽高 : 这里其实不用 tf.max 也可以，因为右下坐标一定大于左上
+        # width and height of union
         combine_wh = tf.maximum(combine_right_bottom - combine_left_top, 0.0)
         
-        # 相交区域面积 : [13, 13, 3, V]
+        # area of intersection : [13, 13, 3, V]
         intersection_area = intersection_wh[..., 0] * intersection_wh[..., 1]
-        # 预测box面积 : [13, 13, 3, 1]
+        # area of prediction box  : [13, 13, 3, 1]
         pre_area = pre_wh[..., 0] * pre_wh[..., 1]
-        # 真值 box 面积 : [V]
+        # area of truth box : [V]
         true_area = yi_true_wh[..., 0] * yi_true_wh[..., 1]
         # [V] ==> [1, V]
         true_area = tf.expand_dims(true_area, axis=0)
         # iou : [13, 13, 3, V]
-        iou = intersection_area / (pre_area + true_area - intersection_area + 1e-10)    # 防止除0
+        iou = intersection_area / (pre_area + true_area - intersection_area + 1e-10)    # avoid to divide zero
 
-        # 并集区域面积 : [13, 13, 3, V, 1] ==> [13, 13, 3, V] 
+        # area of union : [13, 13, 3, V, 1] ==> [13, 13, 3, V] 
         combine_area = combine_wh[..., 0] * combine_wh[..., 1]
         # giou : [13, 13, 3, V]
-        giou = (intersection_area+1e-10) / combine_area # 加上一个很小的数字，确保 giou 存在
+        giou = (intersection_area+1e-10) / combine_area # add a number to guarantee  giou is exists
         
         return iou, giou
 
-    # 计算 CIOU 损失
+    # compute CIOU loss
     def __my_CIOU_loss(self, pre_xy, pre_wh, yi_box):
         '''
         the formula of CIOU_LOSS is refers to http://bbs.cvmart.net/topics/1436
-        计算每一个 box 与真值的 ciou 损失
         pre_xy:[batch_size, 13, 13, 3, 2]
         pre_wh:[batch_size, 13, 13, 3, 2]
         yi_box:[batch_size, 13, 13, 3, 4]
@@ -136,32 +134,32 @@ class YOLO():
         yi_true_xy = yi_box[..., 0:2]
         yi_true_wh = yi_box[..., 2:4]
 
-        # 上下左右
+        # top dowm left right
         pre_lt = pre_xy - pre_wh/2
         pre_rb = pre_xy + pre_wh/2
         truth_lt = yi_true_xy - yi_true_wh / 2
         truth_rb = yi_true_xy + yi_true_wh / 2
 
-        # 相交区域坐标 : [batch_size, 13, 13, 3,2]
+        # left top of intersection : [batch_size, 13, 13, 3,2]
         intersection_left_top = tf.maximum(pre_lt, truth_lt)
         intersection_right_bottom = tf.minimum(pre_rb, truth_rb)
-        # 相交区域宽高 : [batch_size, 13, 13, 3, 2]
+        # width and height of intersection : [batch_size, 13, 13, 3, 2]
         intersection_wh = tf.maximum(intersection_right_bottom - intersection_left_top, 0.0)
-        # 相交区域面积 : [batch_size, 13, 13, 3, 1]
+        # area of intersection : [batch_size, 13, 13, 3, 1]
         intersection_area = intersection_wh[..., 0:1] * intersection_wh[..., 1:2]
-        # 并集区域左上角坐标 
+        # left top of union 
         combine_left_top = tf.minimum(pre_lt, truth_lt)
-        # 并集区域右下角坐标
+        # right bottom of union
         combine_right_bottom = tf.maximum(pre_rb, truth_rb)
-        # 并集区域宽高 : 这里其实不用 tf.max 也可以，因为右下坐标一定大于左上
+        # width and height of union
         combine_wh = tf.maximum(combine_right_bottom - combine_left_top, 0.0)
 
-        # 并集区域对角线 : [batch_size, 13, 13, 3, 1]
+        # diagonal line of union : [batch_size, 13, 13, 3, 1]
         C = tf.square(combine_wh[..., 0:1]) + tf.square(combine_wh[..., 1:2])
-        # 中心点对角线:[batch_size, 13, 13, 3, 1]
+        # diagonal line  of center point:[batch_size, 13, 13, 3, 1]
         D = tf.square(yi_true_xy[..., 0:1] - pre_xy[..., 0:1]) + tf.square(yi_true_xy[..., 1:2] - pre_xy[..., 1:2])
 
-        # box面积 : [batch_size, 13, 13, 3, 1]
+        # area of box : [batch_size, 13, 13, 3, 1]
         pre_area = pre_wh[..., 0:1] * pre_wh[..., 1:2]
         true_area = yi_true_wh[..., 0:1] * yi_true_wh[..., 1:2]
 
@@ -170,7 +168,7 @@ class YOLO():
 
         pi = 3.14159265358979323846
 
-        # 衡量长宽比一致性的参数:[batch_size, 13, 13, 3, 1]
+        # [batch_size, 13, 13, 3, 1]
         v = 4 / (pi * pi) * tf.square( 
                                     tf.subtract(
                                         tf.math.atan(yi_true_wh[..., 0:1] / yi_true_wh[..., 1:2]),
@@ -178,27 +176,27 @@ class YOLO():
                                         )
                                     )
 
-        # trade-off 参数
+        # trade-off 
         # alpha
         alpha = v / (1.0 - iou + v)
         ciou_loss = 1.0 - iou + D / C +  alpha * v
         return ciou_loss
 
-    # 得到低iou的地方
+    # get low iou place between truth and prediction box
     def __get_low_iou_mask(self, pre_xy, pre_wh, yi_true, use_iou=True, ignore_thresh=0.5):
         '''
         pre_xy:[batch_size, 13, 13, 3, 2]
         pre_wh:[batch_size, 13, 13, 3, 2]
         yi_true:[batch_size, 13, 13, 3, 5+class_num]
-        use_iou:是否使用 iou 作为计算标准
-        ignore_thresh:iou小于这个值就认为与真值不重合
+        use_iou:use iou as meters
+        ignore_thresh:thresh of iou or giou
         return: [batch_size, 13, 13, 3, 1]
-        返回 iou 低于阈值的区域 mask
+        return a mask where iou or giou lower than thresh
         '''
-        # 置信度:[batch_size, 13, 13, 3, 1]
+        # confidence:[batch_size, 13, 13, 3, 1]
         conf_yi_true = yi_true[..., 4:5]
 
-        # iou小的地方
+        # mask of low iou
         low_iou_mask = tf.TensorArray(tf.bool, size=0, dynamic_size=True)
         # batch_size
         N = tf.shape(yi_true)[0]
@@ -206,9 +204,9 @@ class YOLO():
         def loop_cond(index, low_iou_mask):
             return tf.less(index, N)        
         def loop_body(index, low_iou_mask):
-            # 一张图片的全部真值 : [13, 13, 3, class_num+5] & [13, 13, 3, 1] == > [V, class_num + 5]
+            # truth of all label : [13, 13, 3, class_num+5] & [13, 13, 3, 1] == > [V, class_num + 5]
             valid_yi_true = tf.boolean_mask(yi_true[index], tf.cast(conf_yi_true[index, ..., 0], tf.bool))
-            # 计算 iou/ giou : [13, 13, 3, V]
+            # compute iou/ giou : [13, 13, 3, V]
             iou, giou = self.IOU(pre_xy[index], pre_wh[index], valid_yi_true)
 
             # [13, 13, 3]
@@ -220,36 +218,35 @@ class YOLO():
             low_iou_mask_tmp = best_giou < ignore_thresh
             # [13, 13, 3, 1]
             low_iou_mask_tmp = tf.expand_dims(low_iou_mask_tmp, -1)
-            # 写入
+            # write
             low_iou_mask = low_iou_mask.write(index, low_iou_mask_tmp)
             return index+1, low_iou_mask
 
         _, low_iou_mask = tf.while_loop(cond=loop_cond, body=loop_body, loop_vars=[0, low_iou_mask])
-        # 拼接:[batch_size, 13, 13, 3, 1]
+        # stack:[batch_size, 13, 13, 3, 1]
         low_iou_mask = low_iou_mask.stack()
         return low_iou_mask
 
-    # 得到预测物体概率低的地方的掩码
+    # get mask of low possibility area
     def __get_low_prob_mask(self, prob, prob_thresh=0.25):
         '''
         prob:[batch_size, 13, 13, 3, class_num]
-        prob_thresh:物体概率预测的阈值
+        prob_thresh:thresh
         return: bool [batch_size, 13, 13, 3, 1]
-        全部预测物体概率小于阈值的 mask
+        return a mask where possibility is all lower than thresh
         '''
         # [batch_size, 13, 13, 3, 1]
         max_prob = tf.reduce_max(prob, axis=-1, keepdims=True)
         low_prob_mask = max_prob < prob_thresh        
         return low_prob_mask
 
-    # 对预测值进行解码
     def __decode_feature(self, yi_pred, curr_anchors):
         '''
         yi_pred:[batch_size, 13, 13, 3 * (class_num + 5)]
-        curr_anchors:[3,2], 这一层对应的 anchor, 真实值
+        curr_anchors:[3,2], truth value
         return:
-            xy:[batch_size, 13, 13, 3, 2], 相对于原图的中心坐标
-            wh:[batch_size, 13, 13, 3, 2], 相对于原图的宽高
+            xy:[batch_size, 13, 13, 3, 2], float
+            wh:[batch_size, 13, 13, 3, 2], float
             conf:[batch_size, 13, 13, 3, 1]
             prob:[batch_size, 13, 13, 3, class_num]
         '''
@@ -257,17 +254,15 @@ class YOLO():
         shape = tf.cast(shape, tf.float32)
         # [batch_size, 13, 13, 3, class_num + 5]
         yi_pred = tf.reshape(yi_pred, [shape[0], shape[1], shape[2], 3, 5 + self.class_num])
-        # 分割预测值
         # shape : [batch_size,13,13,3,2] [batch_size,13,13,3,2] [batch_size,13,13,3,1] [batch_size,13,13,3, class_num]
         xy, wh, conf, prob = tf.split(yi_pred, [2, 2, 1, self.class_num], axis=-1)
 
-        ''' 计算 x,y 的坐标偏移 '''
-        offset_x = tf.range(shape[2], dtype=tf.float32) #宽
-        offset_y = tf.range(shape[1], dtype=tf.float32) # 高
+        ''' compute offset of x and y ''' 
+        offset_x = tf.range(shape[2], dtype=tf.float32) #width
+        offset_y = tf.range(shape[1], dtype=tf.float32) # height
         offset_x, offset_y = tf.meshgrid(offset_x, offset_y)
         offset_x = tf.reshape(offset_x, (-1, 1))
         offset_y = tf.reshape(offset_y, (-1, 1))
-        # 把 offset_x, offset_y 合并成一个坐标网格 [13*13, 2], 每个元素是当前坐标 (x, y)
         offset_xy = tf.concat([offset_x, offset_y], axis=-1)
         # [13, 13, 1, 2]
         offset_xy = tf.reshape(offset_xy, [shape[1], shape[2], 1, 2])
@@ -280,7 +275,7 @@ class YOLO():
 
         return xy, wh, conf, prob
 
-    # 计算损失, yolov4
+    # compute loss of yolov4
     def __compute_loss_v4(self, xy, wh, conf, prob, yi_true, cls_normalizer=1.0, ignore_thresh=0.5, 
                                                                 prob_thresh=0.25, score_thresh=0.25, iou_normalizer=0.07):
         '''
@@ -289,18 +284,12 @@ class YOLO():
         conf:[batch_size, 13, 13, 3, 1]
         prob:[batch_size, 13, 13, 3, class_num]
         yi_true:[batch_size, 13, 13, 3, class_num]
-        cls_normalizer:置信度损失参数
-        ignore_thresh:与真值iou阈值
-        prob_thresh:最低分类概率阈值
-        score_thresh:最低分类得分阈值
-        iou_normalizer:iou_loss 系数
-        return: 总的损失
+        return: total loss
 
-        loss_total:总的损失
-        xy_loss:中心坐标损失
-        wh_loss:宽高损失
-        conf_loss:置信度损失
-        class_loss:分类损失
+        xy_loss: loss of x and y
+        wh_loss: loss of width and height
+        conf_loss: loss of confidence
+        class_loss: loss of possibility
         '''
         # mask of low iou 
         low_iou_mask = self.__get_low_iou_mask(xy, wh, yi_true, ignore_thresh=ignore_thresh)
@@ -330,7 +319,7 @@ class YOLO():
         conf_loss_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                             labels=yi_true[:,:,:,:,4:5], logits=conf
                                                             ) * np.square(cls_normalizer) * obj_mask        
-        # 置信度损失
+        # loss of confidence
         conf_loss = conf_loss_obj + conf_loss_no_obj
         conf_loss = tf.clip_by_value(conf_loss, 0.0, 1e3)
         conf_loss = tf.reduce_sum(conf_loss) / N
@@ -349,14 +338,14 @@ class YOLO():
         ciou_loss = tf.reduce_sum(ciou_loss) / N
         ciou_loss = tf.clip_by_value(ciou_loss, 0, 1e4)
 
-        # xy 损失
+        # loss of x and y
         xy = tf.clip_by_value(xy, 1e-10, 1e4)
         xy_loss = obj_mask * tf.square(yi_true[..., 0: 2] - xy)
         xy_loss = tf.clip_by_value(xy_loss, 0.0, 1e3)
         xy_loss = tf.reduce_sum(xy_loss) / N
         xy_loss = tf.clip_by_value(xy_loss, 0.0, 1e4)
 
-        # wh 损失
+        # loss of w and h
         wh_y_true = tf.where(condition=tf.math.less(yi_true[..., 2:4], 1e-10),
                                         x=tf.ones_like(yi_true[..., 2: 4]), y=yi_true[..., 2: 4])
         wh_y_pred = tf.where(condition=tf.math.less(wh, 1e-10),
@@ -371,7 +360,7 @@ class YOLO():
         wh_loss = tf.reduce_sum(wh_loss) / N
         wh_loss = tf.clip_by_value(wh_loss, 0.0, 1e4)
         
-        # prob 损失
+        # loss of possibility
         # [batch_size, 13, 13, 3, class_num]
         prob_score = prob * conf
         
@@ -395,19 +384,15 @@ class YOLO():
         loss_total = xy_loss + wh_loss + conf_loss + class_loss + ciou_loss
         return loss_total
 
-    # 获得损失 yolov4
+    # get loss of yolov4
     def get_loss_v4(self, feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, cls_normalizer=1.0, ignore_thresh=0.5, prob_thresh=0.25, score_thresh=0.25):
         '''
         feature_y1:[batch_size, 13, 13, 3*(5+class_num)]
         feature_y2:[batch_size, 26, 26, 3*(5+class_num)]
         feature_y3:[batch_size, 52, 52, 3*(5+class_num)]
-        y1_true: y1尺度的
-        y2_true: y2尺度的标签
-        y3_true: y3尺度的标签
-        cls_normalizer:分类损失系数
-        ignore_thresh:与真值 iou 阈值
-        prob_thresh:分类概率最小值
-        score_thresh:分类得分最小值
+        y1_true: label of y1
+        y2_true: label of y2
+        y3_true: label of y2
         return:total_loss
         '''
         # y1
@@ -427,15 +412,11 @@ class YOLO():
 
         return loss_y1 + loss_y2 + loss_y3
 
-    # 非极大值抑制
+    # NMS
     def __nms(self, boxes, scores, num_classes, max_boxes=50, score_thresh=0.5, iou_threshold=0.5):
         '''
         boxes:[1, V, 4]
         score:[1, V, class_num]
-        num_classes:分类数
-        max_boxes:一类最大保留多少个 box
-        score_thresh:小于这个分数的不算
-        iou_threshold:iou大于这个的合并
         return:????
             boxes:[V, 4]
             score:[V,]
@@ -448,9 +429,7 @@ class YOLO():
         # [V, class_num]
         score = tf.reshape(scores, [-1, num_classes])
 
-        # 分数大的掩码
         mask = tf.greater_equal(score, tf.constant(score_thresh))
-        # 对每一个分类进行 nms 操作
         for i in range(num_classes):
             # Step 3: Apply the mask to scores, boxes and pick them out
             filter_boxes = tf.boolean_mask(boxes, mask[:,i])
@@ -463,37 +442,35 @@ class YOLO():
             boxes_list.append(tf.gather(filter_boxes, nms_indices))
             score_list.append(tf.gather(filter_score, nms_indices))
 
-        # 合并
+        # stack
         boxes = tf.concat(boxes_list, axis=0)
         score = tf.concat(score_list, axis=0)
         label = tf.concat(label_list, axis=0)
 
         return boxes, score, label
 
-    # 得到预测的全部 box
     def __get_pred_box(self, feature_y1, feature_y2, feature_y3):
         '''
         feature_y1:[1, 13, 13, 3*(class_num + 5)]
         feature_y1:[1, 26, 52, 3*(class_num + 5)]
         feature_y1:[1, 26, 52, 3*(class_num + 5)]
         return:
-            boxes:[1, V, 4]:[x_min, y_min, x_max, y_max] 相对于原始图片大小的浮点数
+            boxes:[1, V, 4]:[x_min, y_min, x_max, y_max] float
             conf:[1, V, 1]
             prob:[1, V, class_num]
         '''
-        # y1解码
+        # decode y1
         xy1, wh1, conf1, prob1 = self.__decode_feature(feature_y1, self.anchors[2])
         conf1, prob1 = tf.sigmoid(conf1), tf.sigmoid(prob1)
 
-        # y2解码
+        # decode y2
         xy2, wh2, conf2, prob2 = self.__decode_feature(feature_y2, self.anchors[1])
         conf2, prob2 = tf.sigmoid(conf2), tf.sigmoid(prob2)
 
-        # y3解码
+        # decode y3
         xy3, wh3, conf3, prob3 = self.__decode_feature(feature_y3, self.anchors[0])
         conf3, prob3 = tf.sigmoid(conf3), tf.sigmoid(prob3)
 
-        # 把 box 放到一起来
         def _reshape(xy, wh, conf, prob):
             # [1, 13, 13, 3, 1]
             x_min = xy[..., 0: 1] - wh[..., 0: 1] / 2.0
@@ -521,7 +498,7 @@ class YOLO():
         boxes_y2, conf_y2, prob_y2 = _reshape(xy2, wh2, conf2, prob2)
         boxes_y3, conf_y3, prob_y3 = _reshape(xy3, wh3, conf3, prob3)
 
-        # 全部拿到一起来
+        # stack
         # [1, 13*13*3, 4] & [1, 26*26*3, 4] & [1, 52*52*3, 4] ==> [1,  V, 4]
         boxes = tf.concat([boxes_y1, boxes_y2, boxes_y3], 1)
         conf = tf.concat([conf_y1, conf_y2, conf_y3], 1)
@@ -529,18 +506,15 @@ class YOLO():
 
         return boxes, conf, prob
 
-    # 得到预测结果
+    # get prediction result
     def get_predict_result(self, feature_y1, feature_y2, feature_y3, class_num, score_thresh=0.5, iou_thresh=0.5, max_box=200):
         '''
         feature_y1:[batch_size, 13, 13, 3*(class_num+5)]
         feature_y2:[batch_size, 26, 26, 3*(class_num+5)]
         feature_y3:[batch_size, 52, 52, 3*(class_num+5)]
-        class_num:分类数
-        score_thresh:小于这个分数的就不算
-        iou_thresh : 超过这个 iou 的 box 进行合并
-        max_box : 最多保留多少物体
+        class_num: classify number
         return:
-            boxes:[V, 4]包含[x_min, y_min, x_max, y_max]
+            boxes:[V, 4] include [x_min, y_min, x_max, y_max]
             score:[V, 1]
             label:[V, 1]
         '''

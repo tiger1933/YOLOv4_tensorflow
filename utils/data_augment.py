@@ -1,10 +1,10 @@
 # coding:utf-8
-# 数据增强策略
+# data augment
 import numpy as np
 import cv2
 import random
 
-# 等比例缩放图片
+# resize image and keep the value of width / heigh
 def keep_image_shape_resize(bgr_img, size=[416, 416]):
     '''
     bgr_img : cv2 image (BGR)
@@ -22,7 +22,7 @@ def keep_image_shape_resize(bgr_img, size=[416, 416]):
     return img, nw, nh
 
 
-# 翻转图片
+# flip the image vertically
 def flip_img(bgr_img):
     '''
         bgr_img:cv2 image (BGR)
@@ -30,14 +30,14 @@ def flip_img(bgr_img):
     bgr_img = cv2.flip(bgr_img, 1)
     return bgr_img
 
-# 灰度化图片
+# gray
 def gray_img(bgr_img):
     ''' bgr_img: cv2 image (BGR) '''
     tmp = cv2.cvtColor(bgr_img, cv2.COLOR_BGR2GRAY)
     bgr_img = cv2.cvtColor(tmp, cv2.COLOR_GRAY2BGR)
     return bgr_img
 
-# 随机擦除
+# random erase image
 def erase_img(bgr_img, size_area=[20, 100]):
     '''
     bgr_img: cv2 image (BGR)
@@ -55,13 +55,13 @@ def erase_img(bgr_img, size_area=[20, 100]):
     bgr_img[y:y+erase_h, x:x+erase_w, : ] = value
     return bgr_img
 
-# 图片像素值取反
+# 1.0 - pixels.value
 def invert_img(bgr_img):
     ''' bgr_img:cv2 image (BGR) '''
     bgr_img = 255 - bgr_img
     return bgr_img
 
-# 旋转图片
+# rotate image
 def random_rotate_img(bgr_img, angle_min=-6, angle_max=6):
     ''' bgr_img:cv2 image (BGR) '''
     angle = np.random.randint(angle_min, angle_max)

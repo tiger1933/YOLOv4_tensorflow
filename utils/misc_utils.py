@@ -18,14 +18,7 @@ def load_weights(var_list, weights_file):
     ptr = 0
     i = 0
     assign_ops = []
-    # weight_name_list = []
     while i < len(var_list) - 1:
-    # while i < len(var_list) :
-    #     # rdc add
-    #     # 保存权重名字
-    #     weight_name_list.append(var_list[i].name)
-    #     i += 1
-    #     continue
 
         var1 = var_list[i]
         var2 = var_list[i + 1]
@@ -71,12 +64,7 @@ def load_weights(var_list, weights_file):
                 tf.assign(var1, var_weights, validate_shape=True))
             i += 1
         else:
-            print("没有")
+            print("no")
     print("ptr:%d, weights: %d" %(ptr, len(weights)))
-
-    # with open("./weights_name.txt", 'w') as f:
-    #     print("写入文件")
-    #     for name in weight_name_list:
-    #         f.write(str(name) + "\n")
 
     return assign_ops

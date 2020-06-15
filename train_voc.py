@@ -1,7 +1,6 @@
 # coding:utf-8
-# 网络训练
+# training on voc
 
-# 解决cudnn 初始化失败的东西: 使用GPU
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 config = ConfigProto()
@@ -19,9 +18,9 @@ from src import Log
 # for save pb file
 from tensorflow.python.framework import graph_util
 
-# 配置优化器
+# configuration optimizer
 def config_optimizer(optimizer_name, lr_init, momentum=0.99):
-    Log.add_log("message:配置优化器:'" + str(optimizer_name) + "'")
+    Log.add_log("message: configuration optimizer:'" + str(optimizer_name) + "'")
     if optimizer_name == 'momentum':
         return tf.compat.v1.train.MomentumOptimizer(lr_init, momentum=momentum)
     elif optimizer_name == 'adam':
@@ -29,12 +28,12 @@ def config_optimizer(optimizer_name, lr_init, momentum=0.99):
     elif optimizer_name == 'sgd':
         return tf.compat.v1.train.GradientDescentOptimizer(learning_rate=lr_init)
     else:
-        Log.add_log("error:不支持的优化器类型:'" + str(optimizer_name) + "'")
-        raise ValueError(str(optimizer_name) + ":不支持的优化器类型")
+        Log.add_log("error: can not fint a optimizer named:'" + str(optimizer_name) + "'")
+        raise ValueError(str(optimizer_name) + ": unsupported optimizer name")
 
-# 配置学习率
+# configuration learning rate
 def config_lr(lr_type, lr_init, epoch_globalstep=0):
-    Log.add_log("message:配置学习率:'" + str(lr_type) + "', 初始学习率:"+str(lr_init))
+    Log.add_log("message: configuration learning rate:'" + str(lr_type) + "', initial learning rate:"+str(lr_init))
     if lr_type == 'piecewise':
         lr = tf.compat.v1.train.piecewise_constant(epoch_globalstep, 
                                                     config.piecewise_boundaries, config.piecewise_values)
@@ -44,22 +43,22 @@ def config_lr(lr_type, lr_init, epoch_globalstep=0):
     elif lr_type =='constant':
         lr = lr_init
     else:
-        Log.add_log("error:不支持的学习率类型:'" + str(lr_type) + "'")
-        raise ValueError(str(lr_type) + ":不支持的学习率类型")
+        Log.add_log("error: unsupported type of learning rate:'" + str(lr_type) + "'")
+        raise ValueError(str(lr_type) + ":unsupported type of learning rate")
 
     return tf.maximum(lr, config.lr_lower)
 
-# tensor 计算当前 epoch 
+#  get current epoch 
 def compute_curr_epoch(global_step, batch_size, imgs_num):
     '''
-    global_step:当前步数
+    global_step:current step
     batch_size:batch_size
-    imgs_num:一共有多少图片
+    imgs_num: total images number
     '''
     epoch = global_step * batch_size / imgs_num
     return  tf.cast(epoch, tf.int32)
 
-# 训练
+# training
 def backward():
     class_num = config.voc_class_num
     yolo = YOLO(class_num, config.voc_anchors, width=config.width, height=config.height)
@@ -74,7 +73,7 @@ def backward():
 
     global_step = tf.Variable(0, trainable=False)
     
-    # 损失 yolov4
+    # loss value of yolov4
     loss = yolo.get_loss_v4(feature_y1, feature_y2, feature_y3, y1_true, y2_true, y3_true, 
                                                         config.cls_normalizer, config.ignore_thresh, config.prob_thresh, config.score_thresh)
     l2_loss = tf.compat.v1.losses.get_regularization_loss()
@@ -89,7 +88,7 @@ def backward():
         clip_grad_var = [gv if gv[0] is None else[tf.clip_by_norm(gv[0], 100.), gv[1]] for gv in gvs]
         train_step = optimizer.apply_gradients(clip_grad_var, global_step=global_step)
 
-    # 初始化
+    # initialize
     init = tf.compat.v1.global_variables_initializer()
 
     saver = tf.compat.v1.train.Saver()
@@ -102,11 +101,10 @@ def backward():
             saver.restore(sess, ckpt.model_checkpoint_path)
             step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
             step = eval(step)
-            Log.add_log("message:存在 ckpt 模型, global_step=" + str(step))
+            Log.add_log("message: load ckpt model, global_step=" + str(step))
         else:
-            Log.add_log("message:不存在 ckpt 模型")
+            Log.add_log("message:can not fint ckpt model")
         
-        # 一共迭代这么多次
         total_steps = np.ceil(config.total_epoch * data.num_imgs / config.batch_size)
         while step < total_steps:
             start = time.perf_counter()
@@ -138,6 +136,6 @@ def backward():
 
 
 if __name__ == "__main__":
-    Log.add_log("message:进入 VOC backward 函数")
+    Log.add_log("message: into  VOC backward function")
     Log.add_loss("###########")
     backward()

@@ -1,5 +1,5 @@
 # coding:utf-8
-# 基本操作
+# tools
 
 import os
 from os import path
@@ -9,32 +9,31 @@ import random
 from xml.dom.minidom import parse
 
 '''
-##################### 文件操作 #####################
+##################### about file #####################
 '''
-# 读取文件全部内容
+# read file content
 def read_file(file_name):
     '''
-    读取 file_name 文件全部内容
-    return:文件内容list
+    read all content in file_name
+    return: list 
     '''
     if not path.isfile(file_name):
         return None
     result = []
     with open(file_name, 'r') as f:
         for line in f.readlines():
-            # 去掉换行符和空格
             line = line.strip('\n').strip()
             if len(line) == 0:
                 continue
             result.append(line)
     return result
 
-# 写入文件,是否写入时间
+# write file
 def write_file(file_name, line, write_time=False):
     '''
-    file_name:写入文件名
-    line:写入文件内容
-    write_time:是否在内容前一行写入时间
+    file_name: name
+    line: content to write
+    write_time: write current time before this line
     '''
     with open(file_name,'a') as f:
         if write_time:
@@ -42,20 +41,19 @@ def write_file(file_name, line, write_time=False):
         f.write(str(line) + '\n')
     return None
 
-# 将 ls 文件重新写入 file_name 
+# rewrite a list to file_name 
 def rewrite_file(file_name, ls_line):
     '''
-    将 ls_line 中的内容写入 file_name
+    rewrite file in file_name
     '''
     with open(file_name, 'w') as f:
         for line in ls_line:
             f.write(str(line) + '\n')
     return
 
-# 解析 voc xml 文件
+# parameter voc xml file
 def parse_voc_xml(file_name, names_dict):
     '''
-    解析voc数据集的 xml 文件,每一个列表表示一个图片中的全部标签
     return [ [id1, x1, y1, w1, h1], [id2, x2, y2, w2, h2], ... ]
     '''
     # print(file_name)
@@ -89,46 +87,44 @@ def parse_voc_xml(file_name, names_dict):
     return result
 
 '''
-######################## 时间操作 ####################
+######################## about time ####################
 '''
-# 获得当前日期
+# get current time
 def get_curr_data():
     '''
-    return : 年-月-日-时-分-秒
+    return : year-month-day-hours-minute-second
     '''
     t = time.gmtime()
     time_str = time.strftime("%Y-%m-%d-%H-%M-%S",t)
     return time_str
 
 '''
-######################## 图片操作 ####################
+######################## about image ####################
 '''
-# 读取图片
+# read image
 def read_img(file_name):
     '''
-    以 BGR 格式读取图片
-    return:BGR图片
+    read image as BGR
+    return:BGR image
     '''
     if not path.exists(file_name):
         return None
     img = cv2.imread(file_name)
     return img
 
-# 图片画框
+# draw some box on image
 def draw_img(img, boxes, score, label, word_dict, color_table,):
     '''
     img : cv2.img [416, 416, 3]
     boxes:[V, 4], x_min, y_min, x_max, y_max
-    score:[V], 对应 box 的分数
-    label:[V], 对应 box 的标签
-    word_dict:id=>name 的变换字典
-    window_name:显示的窗口名
-    wait_key:暂停时间 ms
-    return:画了框的图片
+    score:[V], score of corresponding box 
+    label:[V], label of corresponding box
+    word_dict: dictionary of  id=>name
+    return : a image after draw the boxes
     '''
     w = img.shape[1]
     h = img.shape[0]
-    # 字体
+    # font
     font = cv2.FONT_HERSHEY_SIMPLEX
     for i in range(len(boxes)):
         boxes[i][0] = constrait(boxes[i][0], 0, 1)
@@ -141,9 +137,9 @@ def draw_img(img, boxes, score, label, word_dict, color_table,):
         curr_label = label[i] if label is not None else 0
         curr_color = color_table[curr_label] if color_table is not None else (0, 125, 255)
         
-        # 画框
+        # draw box
         cv2.rectangle(img, (x_min, y_min), (x_max, y_max), curr_color)
-        # 写字
+        # draw font
         if word_dict is not None:
             text_name = "{}".format(word_dict[curr_label])
             cv2.putText(img, text_name, (x_min, y_min + 25), font, 1, curr_color)
@@ -154,12 +150,11 @@ def draw_img(img, boxes, score, label, word_dict, color_table,):
 
 
 '''
-######################## 其他操作 ####################
+######################## others ####################
 '''
-# 得到 id => name 的转换
 def get_word_dict(name_file):
     '''
-    得到 id 到 名字的字典
+    dictionary of id to name
     return:{}
     '''
     word_dict = {}
@@ -168,10 +163,10 @@ def get_word_dict(name_file):
         word_dict[i] = str(contents[i])
     return word_dict
 
-# name => id 的转换
+# name => id 
 def word2id(names_file):
     '''
-    得到 名字 到 id 的转换字典
+    dictionary of name to id
     return {}
     '''
     id_dict = {}
@@ -180,10 +175,8 @@ def word2id(names_file):
         id_dict[str(contents[i])] = i
     return id_dict
 
-# 限制数字
 def constrait(x, start, end):
     '''    
-    将 x 限制到 [start, end] 闭区间之间
     return:x    ,start <= x <= end
     '''
     if x < start:
@@ -193,10 +186,10 @@ def constrait(x, start, end):
     else:
         return x
 
-# 得到随机的色表
+# get a list of color of corresponding name 
 def get_color_table(class_num):
     '''
-    返回一个包含随机颜色的 (r, g, b) 格式的 list
+    return :  list of (r, g, b) color
     '''
     color_table = []
     for i in range(class_num):

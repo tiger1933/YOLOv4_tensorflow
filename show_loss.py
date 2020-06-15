@@ -3,8 +3,8 @@ import config
 from os import path
 import sys
 
-min_index = 0   # 忽略前 min_index 行
-# 每隔多少个数字画一个点
+min_index = 0   # ignore the first in_index lines
+# draw a point per gap gap point
 gap = 1.0
 
 if len(sys.argv) == 3:
@@ -34,12 +34,9 @@ def decode_file(file_name):
             loss.append(float(line[1].strip()))
     return sequence, loss
 
-# 平均的损失
 sequence_avg = []
 loss_avg = []
-# 损失的最大值
 loss_max = []
-# 损失的最小值
 loss_min = []
 
 loss_file = path.join(config.log_dir, config.loss_name)

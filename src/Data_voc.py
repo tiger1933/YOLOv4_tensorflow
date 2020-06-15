@@ -1,5 +1,5 @@
 # coding:utf-8
-# voc 数据加载
+# load voc dataset
 import numpy as np
 from src import Log
 from utils import tools
@@ -11,8 +11,8 @@ from os import path
 
 class Data():
     def __init__(self, voc_root_dir, voc_dir_ls, voc_names, class_num, batch_size, anchors, agument, width=608, height=608, data_debug=False):
-        self.data_dirs = [path.join(path.join(voc_root_dir, voc_dir), "JPEGImages") for voc_dir in voc_dir_ls]  # 数据文件路径
-        self.class_num = class_num  # 分类数
+        self.data_dirs = [path.join(path.join(voc_root_dir, voc_dir), "JPEGImages") for voc_dir in voc_dir_ls] 
+        self.class_num = class_num  # classify number
         self.batch_size = batch_size
         self.anchors = np.asarray(anchors).astype(np.float32).reshape([-1, 2]) / [width, height]     #[9,2]
         print("anchors:\n", self.anchors)
@@ -20,8 +20,8 @@ class Data():
         self.imgs_path = []
         self.labels_path = []
 
-        self.num_batch = 0      # 多少个 batch 了
-        self.num_imgs = 0       # 一共多少张图片
+        self.num_batch = 0      # total batch number
+        self.num_imgs = 0       # total number of images
 
         self.data_debug = data_debug
 
@@ -31,16 +31,15 @@ class Data():
 
         self.smooth_delta = 0.01 # label smooth delta
 
-        self.names_dict = tools.word2id(voc_names)    # 名字到 id 的字典
+        self.names_dict = tools.word2id(voc_names)    # dictionary of name to id
 
-        # 初始化各项参数
         self.__init_args()
     
-    # 初始化各项参数
+    # initial all parameters
     def __init_args(self):
         Log.add_log("data agument strategy : "+str(self.agument))
-        # 初始化数据增强策略的参数
-        self.multi_scale_img = self.agument[0] # 多尺度缩放图片
+        # data augment strategy
+        self.multi_scale_img = self.agument[0] # multiscale zoom the image
         self.keep_img_shape = self.agument[1]   # keep image's shape when we reshape the image
         self.flip_img = self.agument[2]    # flip image
         self.gray_img = self.agument[3]        # gray image
@@ -49,7 +48,7 @@ class Data():
         self.invert_img = self.agument[6]                  # invert image pixel
         self.rotate_img = self.agument[7]           # random rotate image
 
-        Log.add_log("message:开始初始化路径")
+        Log.add_log("message: begin to initial images path")
 
         # init imgs path
         for voc_dir in self.data_dirs:
@@ -58,25 +57,25 @@ class Data():
                 label_path = img_path.replace("JPEGImages", "Annotations")
                 label_path = label_path.replace(img_name.split('.')[-1], "xml")
                 if not path.isfile(img_path):
-                    Log.add_log("warning:VOC 图片文件'"+str(img_path)+"'不存在")
+                    Log.add_log("warning:VOC image'"+str(img_path)+"'is not a file")
                     continue
                 if not path.isfile(label_path):
-                    Log.add_log("warning:VOC 标签文件'"+str(label_path)+"'不存在")
+                    Log.add_log("warning:VOC label'"+str(label_path)+"'if not a file")
                     continue
                 self.imgs_path.append(img_path)
                 self.labels_path.append(label_path)
                 self.num_imgs += 1        
-        Log.add_log("message:VOC 数据初始化完成,一共有 "+str(self.num_imgs)+" 张图片")
+        Log.add_log("message:initialize VOC dataset complete,  there are "+str(self.num_imgs)+" pictures in all")
         
         if self.num_imgs <= 0:
-            raise ValueError("没有可训练的图片, 程序退出")
+            raise ValueError("there are 0 pictures to train in all")
         
         return
         
-    # 读取图片
+    # read image 
     def read_img(self, img_file):
         '''
-        读取 img_file, 并 resize
+        read img_file, and resize it
         return:img, RGB & float
         '''
         img = tools.read_img(img_file)
@@ -117,12 +116,12 @@ class Data():
         img = img/255.0
         return img, new_w, new_h, test_img
     
-    # 读取标签
+    # read label file
     def read_label(self, label_file, names_dict, anchors, new_w, new_h):
         '''
-        读取 label_file, 并生成 label_y1, label_y2, label_y3
-        new_w:缩放以后的图片宽,真值
-        new_h:缩放以后的图片高,真值
+        parsement label_file, and generates label_y1, label_y2, label_y3
+        new_w: the truth value of image width when we resize it
+        new_h: the truth value of image height when we resize it
         return:label_y1, label_y2, label_y3
         '''
         contents = tools.parse_voc_xml(label_file, names_dict)  
@@ -149,9 +148,9 @@ class Data():
 
         for label in contents:
             label_id = int(label[0])
-            box = np.asarray(label[1: 5]).astype(np.float32)   # label中保存的就是 x,y,w,h
+            box = np.asarray(label[1: 5]).astype(np.float32)   # the value saved in label is x,y,w,h
             if self.keep_img_shape:
-                # 加入填充的黑边宽高，重新修正坐标
+                # modify Coordinates
                 box[0:2] = (box[0:2] * [new_w, new_h ] + [x_pad, y_pad]) / [self.width, self.height]
                 box[2:4] = (box[2:4] * [new_w, new_h]) / [self.width, self.height]  
             
@@ -182,13 +181,13 @@ class Data():
         return label_y1, label_y2, label_y3, test_result
 
 
-    # 加载 batch_size 的数据
+    # load batch_size images
     def __get_data(self):
         '''
-        加载 batch_size 的标签和数据
+        load  batch_size labels and images
         return:imgs, label_y1, label_y2, label_y3
         '''
-        # 十个 batch 随机一次 size 
+        # random resize the image per ten batch 
         if self.multi_scale_img and (self.num_batch % 10 == 0):
             random_size = random.randint(13, 23) * 32
             self.width = self.height = random_size
@@ -212,17 +211,17 @@ class Data():
             img, new_w, new_h, test_img = self.read_img(img_name)
             label_y1, label_y2, label_y3, test_result = self.read_label(label_name, self.names_dict, self.anchors, new_w, new_h)
             
-            # 显示最后的结果
+            # show data agument result
             if self.data_debug:
                 test_img = tools.draw_img(test_img, test_result, None, None, None, None)
                 cv2.imshow("letterbox_img", test_img)
                 cv2.waitKey(0)
             
             if img is None:
-                Log.add_log("VOC 文件'" + img_name + "'读取异常")
+                Log.add_log(" VOC file'" + img_name + "'is None")
                 continue
             if label_y1 is None:
-                Log.add_log("VOC 文件'" + label_name + "'读取异常")
+                Log.add_log("VOC file'" + label_name + "'is None")
                 continue
             imgs.append(img)
             labels_y1.append(label_y1)
@@ -239,11 +238,9 @@ class Data():
         
         return imgs, labels_y1, labels_y2, labels_y3
 
-    # 迭代器
+    # Iterator
     def __next__(self):
-        '''
-        迭代获得一个 batch 的数据
-        '''
+        '''    get batch images    '''
         return self.__get_data()
 
     

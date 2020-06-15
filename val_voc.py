@@ -1,7 +1,6 @@
 # coding:utf-8
-# 结果测试
+# test on voc
 
-# 解决cudnn 初始化失败的东西: 使用GPU
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 config = ConfigProto()
@@ -20,12 +19,7 @@ import os
 from os import path
 import time
 
-# 读取图片
 def read_img(img_name, width, height):
-    '''
-    读取一张图片并转化为网络输入格式
-    return:网络输入图片, 原始 BGR 图片
-    '''
     img_ori = tools.read_img(img_name)
     if img_ori is None:
         return None, None
@@ -44,15 +38,14 @@ def read_img(img_name, width, height):
     img = np.expand_dims(img, 0)
     return img, nw, nh, img_ori, show_img
 
-# 保存图片
 def save_img(img, name):
     '''
-    img:需要保存的 mat 图片
-    name:保存的图片名
+    img: mat 
+    name: saved name
     '''
     voc_save_dir = config.voc_save_dir
     if not path.isdir(voc_save_dir):
-        Log.add_log("message:创建文件夹'"+str(voc_save_dir)+"'")
+        Log.add_log("message: create folder'"+str(voc_save_dir)+"'")
         os.mkdir(voc_save_dir)
     img_name = path.join(voc_save_dir, name)
     cv2.imwrite(img_name, img)
@@ -67,7 +60,6 @@ def main():
     pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, config.voc_class_num, 
                                                                                                 score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
-    # 初始化
     init = tf.compat.v1.global_variables_initializer()
 
     saver = tf.train.Saver()
@@ -76,14 +68,14 @@ def main():
         ckpt = tf.compat.v1.train.get_checkpoint_state(config.voc_model_path)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            Log.add_log("message:存在 ckpt 模型:'"+str(ckpt.model_checkpoint_path)+"'")
+            Log.add_log("message: load ckpt model:'"+str(ckpt.model_checkpoint_path)+"'")
         else:
-            Log.add_log("message:不存在 ckpt 模型")
+            Log.add_log("message:can not find  ckpt model")
             # exit(1)
-
-        # 名字字典
+        
+        # dictionary of name of corresponding id
         word_dict = tools.get_word_dict(config.voc_names)
-        # 色表
+        # dictionary of per names
         color_table = tools.get_color_table(config.voc_class_num)
 
         width = config.width
@@ -92,21 +84,21 @@ def main():
         for name in os.listdir(config.voc_test_dir):
             img_name = path.join(config.voc_test_dir, name)
             if not path.isfile(img_name):
-                print("'%s'不是图片" %img_name)
+                print("'%s' is not file" %img_name)
                 continue
 
             start = time.perf_counter()
 
             img, nw, nh, img_ori, show_img = read_img(img_name, width, height)
             if img is None:
-                Log.add_log("message:'"+str(img)+"'图片读取错误")
+                Log.add_log("message:'"+str(img)+"' is None")
             boxes, score, label = sess.run([pre_boxes, pre_score, pre_label], feed_dict={inputs:img})
             
             end = time.perf_counter()
             print("%s\t, time:%f s" %(img_name, end-start))
 
             if config.keep_img_shape:
-                # 纠正坐标
+                # modify coordinates
                 dw = (width - nw)/2
                 dh = (height - nh)/2
                 for i in range(len(boxes)):
@@ -120,10 +112,10 @@ def main():
             cv2.imshow('img', img_ori)
             cv2.waitKey(0)
 
-            # if config.save_img:
-            #     save_img(img_ori, name)
+            if config.save_img:
+                save_img(img_ori, name)
             pass
 
 if __name__ == "__main__":
-    Log.add_log("message:进入 val.main() 函数")
+    Log.add_log("message: into val.main()")
     main()

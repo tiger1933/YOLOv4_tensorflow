@@ -1,7 +1,6 @@
 # coding:utf-8
-# 结果测试
+# test yolov4.weights
 
-# 解决cudnn 初始化失败的东西: 使用GPU
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
 config = ConfigProto()
@@ -18,12 +17,7 @@ import os
 from os import path
 import time
 
-# 读取图片
 def read_img(img_name, width, height, keep_img_shape = config.keep_img_shape):
-    '''
-    读取一张图片并转化为网络输入格式
-    return:网络输入图片, 原始 BGR 图片
-    '''
     img_ori = tools.read_img(img_name)
     if img_ori is None:
         return None, None
@@ -36,7 +30,7 @@ def read_img(img_name, width, height, keep_img_shape = config.keep_img_shape):
         ori_h , ori_w , _= img_ori.shape
         scale = min(target_h / ori_h , target_w / ori_w)
         nw  , nh = int(scale * ori_w) , int(scale * ori_h)
-        image_resized = cv2.resize(img_ori , (nw , nh))  ##宽 和 长
+        image_resized = cv2.resize(img_ori , (nw , nh))  ## width and height
         img = np.full(shape = [target_h , target_w , 3] , fill_value= 0, dtype=np.uint8)
         dh , dw = (target_h - nh)//2 , (target_w - nw)//2
         img[dh:(nh+dh) , dw:(nw+dw),:] = image_resized
@@ -49,11 +43,9 @@ def read_img(img_name, width, height, keep_img_shape = config.keep_img_shape):
     img = np.expand_dims(img, 0)
     return img, img_ori
 
-# 保存图片
 def save_img(img, name):
     '''
-    img:需要保存的 mat 图片
-    name:保存的图片名
+    img: mat
     '''
     save_dir = "coco_save"
     if not path.isdir(save_dir):
@@ -72,7 +64,6 @@ def main():
     pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, 80, 
                                                                                                 score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
-    # 初始化
     init = tf.compat.v1.global_variables_initializer()
 
     saver = tf.train.Saver()
@@ -85,9 +76,9 @@ def main():
         else:
             exit(1)
 
-        # 名字字典
+        # id to names
         word_dict = tools.get_word_dict("./data/coco.names")
-        # 色表
+        # color of corresponding names
         color_table = tools.get_color_table(80)
 
         width = 608
@@ -97,7 +88,7 @@ def main():
         for name in os.listdir(val_dir):
             img_name = path.join(val_dir, name)
             if not path.isfile(img_name):
-                print("'%s'不是图片" %img_name)
+                print("'%s' is not a file" %img_name)
                 continue
 
             start = time.perf_counter()

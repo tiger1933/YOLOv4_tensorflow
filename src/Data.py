@@ -1,5 +1,5 @@
 # coding:utf-8
-# 数据加载
+# load own dataset
 import numpy as np
 from src import Log
 from utils import tools
@@ -9,8 +9,8 @@ import cv2
 
 class Data():
     def __init__(self, data_file, class_num, batch_size, anchors, agument, width=608, height=608, data_debug=False):
-        self.data_file = data_file  # 数据文件
-        self.class_num = class_num  # 分类数
+        self.data_file = data_file  # data dictionary
+        self.class_num = class_num  # classify number
         self.batch_size = batch_size
         self.anchors = np.asarray(anchors).astype(np.float32).reshape([-1, 2]) / [width, height]     #[9,2]
         print("anchors:\n", self.anchors)
@@ -20,7 +20,7 @@ class Data():
         self.imgs_path = []
         self.labels_path = []
 
-        self.num_batch = 0      # 多少个 batch 了
+        self.num_batch = 0      # total batch
 
         self.width = width
         self.height = height
@@ -28,14 +28,13 @@ class Data():
 
         self.smooth_delta = 0.01 # label smooth delta
 
-        # 初始化各项参数
         self.__init_args()
     
-    # 初始化各项参数
+    # initial all parameters
     def __init_args(self):
         Log.add_log("data agument strategy : "+str(self.agument))
-        # 初始化数据增强策略的参数
-        self.multi_scale_img = self.agument[0] # 多尺度缩放图片
+        # parameters of data augment strategy
+        self.multi_scale_img = self.agument[0] # multiscale zoom the image
         self.keep_img_shape = self.agument[1]   # keep image's shape when we reshape the image
         self.flip_img = self.agument[2]    # flip image
         self.gray_img = self.agument[3]        # gray image
@@ -44,28 +43,28 @@ class Data():
         self.invert_img = self.agument[6]                  # invert image pixel
         self.rotate_img = self.agument[7]           # rotate image
 
-        Log.add_log("message:开始初始化路径")
+        Log.add_log("message: begin to initial images path")
 
         # init imgs path
         self.imgs_path = tools.read_file(self.data_file)
         if not self.imgs_path:
-            Log.add_log("error:imgs_path文件不存在")
-            raise ValueError(str(self.data_file) + ":文件中不存在路径")
-        Log.add_log("message:一共有 "+str(len(self.imgs_path)) + " 张图片")
+            Log.add_log("error:imgs_path not exist")
+            raise ValueError("no file find in :" + str(self.data_file))
+        Log.add_log("message:there are "+str(len(self.imgs_path)) + " pictures in all")
 
         # init labels path
         for img in self.imgs_path:
             label_path = img.replace("JPEGImages", "labels")
             label_path = label_path.replace(img.split('.')[-1], "txt")
             self.labels_path.append(label_path)
-        Log.add_log("message:数据路径初始化完成")
+        Log.add_log("message: initialize images path and corresponding labels complete")
         
         return
         
-    # 读取图片
+    # read image and do data augment
     def read_img(self, img_file):
         '''
-        读取 img_file, 并 resize
+        read img_file, and resize image
         return:img, RGB & float
         '''
         img = tools.read_img(img_file)
@@ -106,10 +105,10 @@ class Data():
         img = img/255.0
         return img, new_w, new_h, test_img
     
-    # 读取标签
+    # read labels
     def read_label(self, label_file, anchors, new_w, new_h):
         '''
-        读取 label_file, 并生成 label_y1, label_y2, label_y3
+        parsement label_file, and generates label_y1, label_y2, label_y3
         return:label_y1, label_y2, label_y3
         '''
         contents = tools.read_file(label_file)
@@ -132,15 +131,15 @@ class Data():
         for label in contents:
             label = label.split()
             if len(label) != 5:
-                Log.add_log("error:文件'" + str(label_file) + "'标签数量错误")
-                raise ValueError(str(label_file) + ":标签数量错误")
+                Log.add_log("error: in file '" + str(label_file) + "', the number of parameter does not match")
+                raise ValueError(str(label_file) + ": the number of label parameter does not match")
             label_id = int(label[0])
-            box = np.asarray(label[1: 5]).astype(np.float32)   # label中保存的就是 x,y,w,h
+            box = np.asarray(label[1: 5]).astype(np.float32)   # what saved in label are x,y,w,h
             # flip the label
             if self.flip_img:
                 box[0] = 1.0 - box[0]                
             if self.keep_img_shape:
-                # 加入填充的黑边宽高，重新修正坐标
+                # modify coordinates
                 box[0:2] = (box[0:2] * [new_w, new_h ] + [x_pad, y_pad]) / [self.width, self.height]
                 box[2:4] = (box[2:4] * [new_w, new_h]) / [self.width, self.height]  
             
@@ -170,13 +169,13 @@ class Data():
         return label_y1, label_y2, label_y3, test_result
 
 
-    # 加载 batch_size 的数据
+    # load batch_size images and labels
     def __get_data(self):
         '''
-        加载 batch_size 的标签和数据
+        load batch_size labels and images data
         return:imgs, label_y1, label_y2, label_y3
         '''
-        # 十个 batch 随机一次 size 
+        # random resize image per ten batch
         if self.multi_scale_img and (self.num_batch % 10 == 0):
             random_size = random.randint(13, 23) * 32
             self.width = self.height = random_size
@@ -199,17 +198,17 @@ class Data():
             img, new_w, new_h, test_img = self.read_img(img_name)
             label_y1, label_y2, label_y3, test_result = self.read_label(label_name, self.anchors, new_w, new_h)
             
-            # 显示最后的结果
+            # show data augment result
             if self.data_debug:
                 test_img = tools.draw_img(test_img, test_result, None, None, None, None)
                 cv2.imshow("letterbox_img", test_img)
                 cv2.waitKey(0)
             
             if img is None:
-                Log.add_log("文件'" + img_name + "'读取异常")
+                Log.add_log("file '" + img_name + "' is None")
                 continue
             if label_y1 is None:
-                Log.add_log("文件'" + label_name + "'读取异常")
+                Log.add_log("file'" + label_name + "' is None")
                 continue
             imgs.append(img)
             labels_y1.append(label_y1)
@@ -226,11 +225,8 @@ class Data():
         
         return imgs, labels_y1, labels_y2, labels_y3
 
-    # 迭代器
+    # Iterator
     def __next__(self):
-        '''
-        迭代获得一个 batch 的数据
-        '''
         return self.__get_data()
 
     

@@ -1,13 +1,6 @@
 # coding:utf-8
 # convert ckpt model to pb model
 
-# # 解决cudnn 初始化失败的东西: 使用GPU
-# from tensorflow.compat.v1 import ConfigProto
-# from tensorflow.compat.v1 import InteractiveSession
-# config = ConfigProto()
-# config.gpu_options.allow_growth = True
-# session = InteractiveSession(config=config)
-
 import tensorflow as tf
 import config
 from utils import tools
@@ -41,7 +34,6 @@ def main():
     pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, class_num, 
                                                                                                 score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
 
-    # 初始化
     init = tf.compat.v1.global_variables_initializer()
 
     saver = tf.train.Saver()
@@ -50,9 +42,9 @@ def main():
         ckpt = tf.compat.v1.train.get_checkpoint_state(ckpt_file_dir)
         if ckpt and ckpt.model_checkpoint_path:
             saver.restore(sess, ckpt.model_checkpoint_path)
-            Log.add_log("message:存在 ckpt 模型:'"+str(ckpt.model_checkpoint_path)+"'")
+            Log.add_log("message: ckpt model:'"+str(ckpt.model_checkpoint_path)+"'")
         else:
-            Log.add_log("message:不存在 ckpt 模型")
+            Log.add_log("message:no ckpt model")
             exit(1)
 
         # save  PB model
