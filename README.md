@@ -2,7 +2,6 @@
 * Implement yolov4 with pure tensorflow
 *  implemented the part of data augment strategies
 * continuous update the code
-* we will update the result image soon
 </br>
 
 * rdc01234@163.com
