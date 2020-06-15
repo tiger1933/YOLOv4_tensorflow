@@ -79,6 +79,13 @@ python val.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
+## 将 ckpt 模型转换为 pb 模型
+* 打开ckpt2pb.py 文件, 修改里面的 'ckpt_file_dir', "class_num", "anchors"参数，执行命令
+```
+python ckpt2pb.py
+```
+* 在 'ckpt_file_dir' 目录下会看到生成的 pb 模型
+
 ## 有关 config.py 和训练的提示
 1. config.py 中的 width 和 height 应该是 608，显存不够才调整为 416 的
 2. 学习率不宜设置太高

@@ -28,8 +28,6 @@ data_augment = [multi_scale_img, keep_img_shape, flip_img, gray_img, label_smoot
 total_epoch = 300       # 一共训练多少 epoch
 save_step = 30000        # 多少步保存一次
 data_debug = False       # load data in debug model
-save_pb_model = True    # save model as pb file
-save_ckpt_model = True      # save model as ckpt file
 
 cls_normalizer = 1.0    # 置信度损失系数
 ignore_thresh = 0.7     # 与真值 iou / giou 小于这个阈值就认为没有预测物体

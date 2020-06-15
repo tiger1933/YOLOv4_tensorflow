@@ -20,8 +20,6 @@ import os
 from os import path
 import time
 
-
-
 # 读取图片
 def read_img(img_name, width, height):
     '''

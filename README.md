@@ -81,6 +81,13 @@ python val.py
 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/62.jpg)
 
+## convert ckpt model to pb model
+* open ckpt2pb.py , and modify 'ckpt_file_dir', 'class_num', 'anchors'. run.
+```
+python ckpt2pb.py
+```
+* you will see a pb model in 'ckpt_file_dir'
+
 ## some tips with config.py and train the model
 1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416
 2. learning rate do not set too large
