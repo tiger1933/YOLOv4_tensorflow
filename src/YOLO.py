@@ -518,7 +518,9 @@ class YOLO():
             score:[V, 1]
             label:[V, 1]
         '''
+        # concat_6:0 concat_7:0  concat_8:0
         boxes, conf, prob = self.__get_pred_box(feature_y1, feature_y2, feature_y3)
+        # mul_21:0
         pre_score = conf * prob
         boxes, score, label = self.__nms(boxes, pre_score, class_num, max_boxes=max_box, score_thresh=score_thresh, iou_threshold=iou_thresh)
         return boxes, score, label

@@ -137,5 +137,5 @@ def backward():
 
 if __name__ == "__main__":
     Log.add_log("message: into  VOC backward function")
-    Log.add_loss("###########")
+    # Log.add_loss("###########")
     backward()
