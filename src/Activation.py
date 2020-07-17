@@ -14,12 +14,15 @@ def activation_fn(inputs, name, alpha=0.1):
         tmp = inputs
 
         inputs = tf.where(
-                                    tf.math.logical_and(tf.less(inputs, MISH_THRESH), tf.greater(inputs, -MISH_THRESH)),
-                                    tf.log(1 + tf.exp(inputs)), 
-                                    tf.zeros_like(inputs)
+                                    tf.math.logical_and(tf.less(tmp, MISH_THRESH), tf.greater(inputs, -MISH_THRESH)),
+                                    tf.log(1 + tf.exp(tmp)), 
+                                    tf.zeros_like(tmp)
                                 )
-        inputs = tf.where(tf.less(inputs, -MISH_THRESH), 
-                                                tf.exp(inputs), 
+        inputs = tf.where(tf.less(tmp, -MISH_THRESH), 
+                                                tf.exp(tmp), 
+                                                inputs)
+        inputs = tf.where(tf.greater(tmp, MISH_THRESH),
+                                                tmp,
                                                 inputs)
         # Mish = x*tanh(ln(1+e^x))
         inputs = tmp * tf.tanh(inputs)

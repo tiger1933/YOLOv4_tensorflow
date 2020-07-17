@@ -106,7 +106,7 @@ def main():
             cv2.imshow('img', img_ori)
             cv2.waitKey(0)
 
-            # save_img(img_ori, name)
+            save_img(img_ori, name)
 
 if __name__ == "__main__":
     main()
