@@ -16,13 +16,14 @@ import time
 from tensorflow.python.framework import graph_util
 
 # change this to your ckpt model directory
-ckpt_file_dir = "./VOC"
+# ckpt_file_dir = "./VOC"
+ckpt_file_dir = "./yolo_weights"      # for yolov4.weights
 # your pb model name
 pd_dir = path.join(ckpt_file_dir, "model.pb")
 # change this to your class_num
-class_num = config.voc_class_num
+class_num = 80
 # your anchors
-anchors = config.voc_anchors
+anchors = [12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401]
 
 def main():
     yolo = YOLO(class_num, anchors)

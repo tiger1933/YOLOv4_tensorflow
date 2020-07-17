@@ -84,6 +84,7 @@ python val.py
 python ckpt2pb.py
 ```
 * 在 'ckpt_file_dir' 目录下会看到生成的 pb 模型
+* **[yolov4.weights的pb模型及ckpt模型链接](https://pan.baidu.com/s/1VJ9lwQC7K3jsRF0hg7pdjw)  密码: lmwd**
 
 ## 有关 config.py 和训练的提示
 1. config.py 中的 width 和 height 应该是 608，显存不够才调整为 416 的
