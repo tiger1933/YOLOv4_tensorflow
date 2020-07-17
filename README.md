@@ -86,6 +86,7 @@ python val.py
 python ckpt2pb.py
 ```
 * you will see a pb model in 'ckpt_file_dir'
+* **if you want to use pb model, you will learn more from 'val_pb.py'**
 
 ## some tips with config.py and train the model
 1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416

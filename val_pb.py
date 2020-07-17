@@ -80,11 +80,11 @@ for name in os.listdir(test_imgs_folder):
         continue
     img, nw, nh, img_ori, show_img = read_img(img_name, width, height)
     if img is None:
-        print("message:'"+str(img)+"'图片读取错误")
+        print("message:'"+str(img)+"' picture read error")
     boxes, score, label = sess.run([pre_boxes, pre_score, pre_label], feed_dict={inputs:img})
     
     if config.keep_img_shape:
-        # 纠正坐标
+        # Correct the coordinates.
         dw = (width - nw)/2
         dh = (height - nh)/2
         for i in range(len(boxes)):
