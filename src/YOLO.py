@@ -398,7 +398,8 @@ class YOLO():
         # y1
         xy, wh, conf, prob = self.__decode_feature(feature_y1, self.anchors[2])
         loss_y1 = self.__compute_loss_v4(xy, wh, conf, prob, y1_true, cls_normalizer=1.0, 
-                                                                                    ignore_thresh=ignore_thresh, prob_thresh=prob_thresh, score_thresh=score_thresh)
+                                                                                    ignore_thresh=ignore_thresh, prob_thresh=prob_thresh, \
+                                                                                    score_thresh=score_thresh)
 
         # y2
         xy, wh, conf, prob = self.__decode_feature(feature_y2, self.anchors[1])
