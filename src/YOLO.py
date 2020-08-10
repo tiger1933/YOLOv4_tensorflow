@@ -194,7 +194,7 @@ class YOLO():
         return a mask where iou or giou lower than thresh
         '''
         # confidence:[batch_size, 13, 13, 3, 1]
-        conf_yi_true = yi_true[..., 4:5]
+        conf_yi_true = yi_true[..., 4:5] > 0.5
 
         # mask of low iou
         low_iou_mask = tf.TensorArray(tf.bool, size=0, dynamic_size=True)
@@ -205,7 +205,7 @@ class YOLO():
             return tf.less(index, N)        
         def loop_body(index, low_iou_mask):
             # truth of all label : [13, 13, 3, class_num+5] & [13, 13, 3, 1] == > [V, class_num + 5]
-            valid_yi_true = tf.boolean_mask(yi_true[index], tf.cast(conf_yi_true[index, ..., 0], tf.bool))
+            valid_yi_true = tf.boolean_mask(yi_true[index], conf_yi_true[index, ..., 0])
             # compute iou/ giou : [13, 13, 3, V]
             iou, giou = self.IOU(pre_xy[index], pre_wh[index], valid_yi_true)
 
@@ -310,12 +310,13 @@ class YOLO():
         conf_scale = conf_scale * cls_normalizer                                                        
         conf_scale = tf.math.square(conf_scale)
         # [batch_size, 13, 13, 3, 1]
-        no_obj_mask = 1.0 - yi_true[..., 4:5]
+        no_obj_mask = yi_true[..., 4:5] < 0.5
+        no_obj_mask = tf.cast(no_obj_mask, tf.float32)
         conf_loss_no_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                             labels=yi_true[:,:,:,:,4:5], logits=conf
                                                             ) * conf_scale * no_obj_mask * low_iou_prob_mask
         # [batch_size, 13, 13, 3, 1]
-        obj_mask = yi_true[..., 4:5]        
+        obj_mask = 1 - no_obj_mask       
         conf_loss_obj = tf.nn.sigmoid_cross_entropy_with_logits(
                                                             labels=yi_true[:,:,:,:,4:5], logits=conf
                                                             ) * np.square(cls_normalizer) * obj_mask        
