@@ -16,26 +16,14 @@ import numpy as np
 import os
 from os import path
 import time
+from src.Feature_parse_tf import get_predict_result
 
-def read_img(img_name, width, height, keep_img_shape = config.keep_img_shape):
+def read_img(img_name, width, height):
     img_ori = tools.read_img(img_name)
     if img_ori is None:
         return None, None
-    if not keep_img_shape:
-        img = cv2.resize(img_ori, (width, height))
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    else:
-        # add by rdc ,follow @Jiachenyin1
-        target_h , target_w = height , width
-        ori_h , ori_w , _= img_ori.shape
-        scale = min(target_h / ori_h , target_w / ori_w)
-        nw  , nh = int(scale * ori_w) , int(scale * ori_h)
-        image_resized = cv2.resize(img_ori , (nw , nh))  ## width and height
-        img = np.full(shape = [target_h , target_w , 3] , fill_value= 0, dtype=np.uint8)
-        dh , dw = (target_h - nh)//2 , (target_w - nw)//2
-        img[dh:(nh+dh) , dw:(nw+dw),:] = image_resized
-        img_ori = img
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = cv2.resize(img_ori, (width, height))
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = img.astype(np.float32)
     img = img/255.0
@@ -54,37 +42,46 @@ def save_img(img, name):
     cv2.imwrite(img_name, img)
     return 
 
-
 def main():
+    class_num = 80
+    width = 608
+    height = 608
+    score_thresh = 0.5
+    iou_thresh = 0.213
+    max_box = 50
     anchors = 12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401
-    yolo = YOLO(80, anchors)
-
+    anchors =  np.asarray(anchors).astype(np.float32).reshape([-1, 3, 2])
+    model_dir = "./yolo_weights"
+    name_file = "./data/coco.names"
+    val_dir = "./coco_test_img"
+    
+    yolo = YOLO()
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, None, None, 3])
-    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, isTrain=False)
-    pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, 80, 
-                                                                                                score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
-
+    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, class_num, isTrain=False)
+    pre_boxes, pre_score, pre_label = get_predict_result(feature_y1, feature_y2, feature_y3,
+                                                                                                anchors[2], anchors[1], anchors[0], 
+                                                                                                width, height, class_num, 
+                                                                                                score_thresh=score_thresh, 
+                                                                                                iou_thresh=iou_thresh,
+                                                                                                max_box=max_box)
     init = tf.compat.v1.global_variables_initializer()
 
     saver = tf.train.Saver()
     with tf.compat.v1.Session() as sess:
         sess.run(init)
-        ckpt = tf.compat.v1.train.get_checkpoint_state("./yolo_weights")
+        ckpt = tf.compat.v1.train.get_checkpoint_state(model_dir)
         if ckpt and ckpt.model_checkpoint_path:
-            print("restore: ", ckpt.model_checkpoint_path)
+            print("restore model from ", ckpt.model_checkpoint_path)
             saver.restore(sess, ckpt.model_checkpoint_path)
         else:
-            exit(1)
+            print("can not find ckpt model")
+            assert(0)
 
         # id to names
-        word_dict = tools.get_word_dict("./data/coco.names")
+        word_dict = tools.get_word_dict(name_file)
         # color of corresponding names
-        color_table = tools.get_color_table(80)
-
-        width = 608
-        height = 608
+        color_table = tools.get_color_table(class_num)
         
-        val_dir = "./coco_test_img"
         for name in os.listdir(val_dir):
             img_name = path.join(val_dir, name)
             if not path.isfile(img_name):

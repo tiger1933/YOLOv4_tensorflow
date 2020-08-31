@@ -37,7 +37,7 @@ def write_file(file_name, line, write_time=False):
     '''
     with open(file_name,'a') as f:
         if write_time:
-            line = get_curr_data() + '\n' + str(line)
+            line = get_curr_date() + '\n' + str(line)
         f.write(str(line) + '\n')
     return None
 
@@ -90,7 +90,7 @@ def parse_voc_xml(file_name, names_dict):
 ######################## about time ####################
 '''
 # get current time
-def get_curr_data():
+def get_curr_date():
     '''
     return : year-month-day-hours-minute-second
     '''
@@ -193,7 +193,7 @@ def get_color_table(class_num):
     '''
     color_table = []
     for i in range(class_num):
-        r = random.randint(0, 255)
+        r = random.randint(128, 255)
         g = random.randint(0, 255)
         b = random.randint(0, 255)
         color_table.append((b, g, r))

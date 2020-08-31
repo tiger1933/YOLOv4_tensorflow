@@ -2,65 +2,52 @@
 # configuration file
 
 # ############# Basic configuration. #############
-class_num = 25
-anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
-model_path = "./checkpoint/"
-model_name = "model"
-name_file = './data/train.names'                # dataset's classfic names
+width = 416                     # image width in net
+height = 416                    # image height in net
+batch_size = 2
+total_epoch = 45       # total epoch
+save_per_epoch = 5        # per save_step save one model
+data_debug = False       # load data in debug model (show pictures when loading images)
+cls_normalizer = 1.0    # Loss coefficient of confidence
+iou_normalizer = 0.07   # loss coefficient of ciou
+iou_thresh = 0.5     # 
+prob_thresh = 0.25      # 
+score_thresh = 0.25     # 
+val_score_thresh = 0.5      # 
+val_iou_thresh = 0.213            # 
+max_box = 50                # 
+save_img = False             # save the result image when test the net
 
 # ############# log #############
 log_dir = './log'
 log_name = 'log.txt'
 loss_name = 'loss.txt'
 
-# ############## train ##############
-train_file = './data/train.txt'
-batch_size = 2
-multi_scale_img = False     # mutiscale zoom image to training
-keep_img_shape = False              # keep image shape when we resize the image
-flip_img = True                # flip the image vertically
-gray_img = True             # data augment of make image to gray
-label_smooth = True     # label smooth
-erase_img = False            # random erase image  
-invert_img = False                       # reverse the image pixels (1.0 - pixels.value)          
-rotate_img = False               # rotate image and do not set it as True
-data_augment = [False, False, flip_img, gray_img, label_smooth, erase_img, False, False] # data augment
-total_epoch = 300       # total epoch
-save_step = 30000        # per save_step save one model
-data_debug = False       # load data in debug model
-
-cls_normalizer = 1.0    # Loss coefficient of confidence
-ignore_thresh = 0.7     # 
-prob_thresh = 0.25      # 
-score_thresh = 0.25     # 
-
 # configure the leanring rate
 lr_init = 2e-4                      # initial learning rate	# 0.00261
 lr_lower =1e-6                  # minimum learning rate    
-lr_type = 'constant'   # type of learning rate( 'exponential', 'piecewise', 'constant')
-piecewise_boundaries = [1, 2]   #  for piecewise
-piecewise_values = [2e-4, 1e-4, 1e-4]   # piecewise learning rate
+lr_type = 'piecewise'   # type of learning rate( 'exponential', 'piecewise', 'constant')
+piecewise_boundaries = [1, 10, 50, 100]   #  for piecewise
+piecewise_values = [2e-4, 2e-4, 2e-4, 1e-4, 1e-4]   # piecewise learning rate
 
 # configure the optimizer
 optimizer_type = 'momentum' # type of optimizer
 momentum = 0.949          # 
 weight_decay = 0.0005
 
-
-# ############## test ##############
-val_score_thresh = 0.5      # 
-iou_thresh = 0.213            # 
-max_box = 50                # 
+# ############## training on own dataset ##############
+class_num = 25
+anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
+model_path = "./checkpoint/"
+model_name = "model"
+name_file = './data/train.names'                # dataset's classfic names
+train_file = './data/train.txt'
 val_dir = "./test_pic"  # Test folder directory, which stores test pictures
-save_img = False             # save the result image when test the net
 save_dir = "./save"         # the folder to save result image
-width = 416                     # image width in net
-height = 416                    # image height in net
-
 
 # ############## train on VOC ##############
-voc_root_dir = "/home/random/下载/VOC_dataset"  # root directory of voc dataset
-voc_dir_ls = ['2007_trainval', '2012_trainval']                # the version of voc dataset
+voc_root_dir = "/media/random/数据集/数据集/VOC"  # root directory of voc dataset
+voc_dir_ls = ['VOC2007', 'VOC2012']                # the version of voc dataset
 voc_test_dir = "./voc_test_pic"                                                 # test pictures directory for VOC dataset
 voc_save_dir = "./voc_save"                                                     # the folder to save result image for VOC dataset
 voc_model_path = "./VOC"                                                        # the folder to save model for VOC dataset

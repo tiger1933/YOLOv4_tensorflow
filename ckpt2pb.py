@@ -4,7 +4,6 @@
 import tensorflow as tf
 import config
 from utils import tools
-from utils import data_augment
 from src.YOLO import YOLO
 import cv2
 import numpy as np
@@ -12,6 +11,7 @@ from src import Log
 import os
 from os import path
 import time
+from src.Feature_parse_tf import get_predict_result
 # for save pb file
 from tensorflow.python.framework import graph_util
 
@@ -24,16 +24,26 @@ pd_dir = path.join(ckpt_file_dir, "model.pb")
 class_num = 80
 # your anchors
 anchors = [12, 16, 19, 36, 40, 28, 36, 75, 76, 55, 72, 146, 142, 110, 192, 243, 459, 401]
+anchors = np.asarray(anchors).astype(np.float32).reshape([-1, 3, 2])
+width = height = 608
+score_thresh = 0.5
+iou_thresh = 0.213
+max_box = 50
 
 def main():
-    yolo = YOLO(class_num, anchors)
+    yolo = YOLO()
 
     # Placeholder:0
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[1, None, None, 3])
-    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, isTrain=False)
+    # yolo/Conv_17/BiasAdd:0, yolo/Conv_9/BiasAdd:0, yolo/Conv_1/BiasAdd:0
+    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, class_num, isTrain=False)
     # concat_9:0, concat_10:0, concat_11:0
-    pre_boxes, pre_score, pre_label = yolo.get_predict_result(feature_y1, feature_y2, feature_y3, class_num, 
-                                                                                                score_thresh=config.val_score_thresh, iou_thresh=config.iou_thresh, max_box=config.max_box)
+    pre_boxes, pre_score, pre_label = get_predict_result(feature_y1, feature_y2, feature_y3,
+                                                                                                anchors[2], anchors[1], anchors[0], 
+                                                                                                width, height, class_num, 
+                                                                                                score_thresh=score_thresh, 
+                                                                                                iou_thresh=iou_thresh,
+                                                                                                max_box=max_box)
 
     init = tf.compat.v1.global_variables_initializer()
 

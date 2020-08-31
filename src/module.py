@@ -128,6 +128,8 @@ def extraction_feature(inputs, batch_norm_params, weight_decay):
                             normalizer_params=batch_norm_params,
                             biases_initializer=None,
                             activation_fn=lambda x: Activation.activation_fn(x, act.MISH),
+                            # Important:here you can set the activation function as leaky_relu to save GPU memory
+                            # activation_fn=lambda x: Activation.activation_fn(x, act.LEAKY_RELU),
                             weights_regularizer=slim.l2_regularizer(weight_decay)):
         with tf.variable_scope('Downsample'):
             net = conv(inputs, 32)
