@@ -26,13 +26,13 @@ class Data():
         self.width = width
         self.height = height
 
-        # 初始化数据增强策略的参数
+        # data augment
         self.flip_img = 0    # probility of flip image
         self.is_flip = False    # 
         self.gray_img = 0.02        # probility to gray picture
         self.smooth_delta = 0.001 # label smooth delta
         self.erase_img = 0        # probility of random erase some area
-        self.gasuss = 0.2       # probility of gasuss noise
+        self.gasuss = 0.0       # probility of gasuss noise
 
         self.__init_args()
     

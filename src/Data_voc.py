@@ -30,7 +30,7 @@ class Data():
 
         self.names_dict = tools.word2id(voc_names)    # dictionary of name to id
 
-        # 初始化数据增强策略的参数
+        # data augment
         self.flip_img = 0.5    # probility of flip image
         self.is_flip = False    # 
         self.gray_img = 0.02        # probility to gray picture
