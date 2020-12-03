@@ -12,7 +12,7 @@ def get_predict_result(feature_1, feature_2, feature_3, anchor_1, anchor_2, anch
         score:[V, 1]
         label:[V, 1]
     '''
-    boxes, conf, prob = __get_pred_box(feature_1, feature_2, feature_3, anchor_1, anchor_2, anchor_2, width, height)
+    boxes, conf, prob = __get_pred_box(feature_1, feature_2, feature_3, anchor_1, anchor_2, anchor_3, width, height)
     score = conf * prob
     boxes, score, label = __nms(boxes, score, class_num, max_boxes=max_box, score_thresh=score_thresh, iou_threshold=iou_thresh)
     return boxes, score, label

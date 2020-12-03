@@ -50,6 +50,8 @@ save_per_epoch = config.save_per_epoch
 voc_root_dir = config.voc_root_dir
 voc_dir_ls = config.voc_dir_ls
 
+# TODO:tf.data
+# waiting for me 
 
 #  get current epoch 
 def compute_curr_epoch(global_step, batch_size, imgs_num):
