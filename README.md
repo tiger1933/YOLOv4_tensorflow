@@ -8,7 +8,7 @@
 ## introductions
 * run the following command.
 ```
-python val.py
+python val_voc.py
 ```
 * if have no error, it's ok
 
@@ -76,7 +76,7 @@ train_voc_tf_data.py
 ```
 
 ## training on own dataset
-* **On January 5, 2021, the related code of training own dataset was deleted, and then uploaded again**
+* **On January 5, 2021, the related code of training own dataset was deleted, and if you want to training your own dataset, following **src/Data_voc.py**  and just modify the **__init_args** function, it will be working great**
 * 
 
 ## convert ckpt model to pb model

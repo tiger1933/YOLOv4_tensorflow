@@ -1,5 +1,6 @@
 # YOLOv4_tensorflow | [English introductions](README.md)
 * yolov4的纯tensorflow实现.
+* 实现了tf.data数据加载
 </br>
 
 * rdc01234@163.com
@@ -7,7 +8,7 @@
 ## 使用说明
 * 执行命令
 ```
-python val.py
+python val_voc.py
 ```
 * 如果没有报错, 就没问题
 
@@ -74,7 +75,7 @@ train_voc_tf_data.py
   ```
 
 ## 在自己的数据集上训练
-* **于2021年一月5日删除了训练自己数据集的相关代码，后续更改完成后再重新上传**
+* **于2021年1月5日删除了训练自己数据集的相关代码，如果需要训练自己的数据集，对src/Data_voc.py的__init_args函数稍加修改就可以了**
 * 
 
 ## 将 ckpt 模型转换为 pb 模型

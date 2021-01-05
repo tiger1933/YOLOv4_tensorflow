@@ -83,7 +83,7 @@ def main():
         else:
             Log.add_log("message:can not find  ckpt model")
             # exit(1)
-            assert(0)
+            # assert(0)
         
         # dictionary of name of corresponding id
         word_dict = tools.get_word_dict(name_file)
