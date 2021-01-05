@@ -23,7 +23,7 @@ def read_img(img_name, width, height):
     if img_ori is None:
         return None, None
     img = cv2.resize(img_ori, (width, height))
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    # img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
     img = img.astype(np.float32)
     img = img/255.0

@@ -21,6 +21,7 @@ from src.Loss import Loss
 
 width = config.width
 height = config.height
+size = config.size
 batch_size = config.batch_size
 class_num = config.voc_class_num
 anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2])
@@ -48,10 +49,7 @@ model_path = config.voc_model_path
 total_epoch = config.total_epoch
 save_per_epoch = config.save_per_epoch
 voc_root_dir = config.voc_root_dir
-voc_dir_ls = config.voc_dir_ls
 
-# TODO:tf.data
-# waiting for me 
 
 #  get current epoch 
 def compute_curr_epoch(global_step, batch_size, imgs_num):
@@ -66,9 +64,8 @@ def compute_curr_epoch(global_step, batch_size, imgs_num):
 # training
 def backward():
     yolo = YOLO()
-    data = Data(voc_root_dir, voc_dir_ls, names_file, 
-                            class_num, batch_size, anchors, width, 
-                            height, data_debug=data_debug)
+    data = Data(voc_root_dir, names_file, class_num, 
+                            batch_size, anchors, is_tiny=False, size=size)
 
     inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3])
     y1_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3, 4+1+class_num])

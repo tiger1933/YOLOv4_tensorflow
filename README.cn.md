@@ -1,7 +1,5 @@
 # YOLOv4_tensorflow | [English introductions](README.md)
 * yolov4的纯tensorflow实现.
-* 数据增强没有实现
-* 持续更新
 </br>
 
 * rdc01234@163.com
@@ -68,34 +66,16 @@ python show_loss.py 20 300
 ```
 * 
 ![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
-* 
-## 在自己的数据集上训练
-* ./data/JPEGImages 文件夹中存放用**labelme**标注**json文件**的jpg图片和对应的json文件, 参考我给的  ./data/JPEGImages 文件夹下的格式
-* 然后在 ./data 文件夹下执行 python 命令, 会自动产生 label 文件和 train.txt 文件
-```
-python generate_labels.py
-```
-* 继续执行命令,得到 anchor box
-```
-python k_means.py
-```
-* 打开 config.py, 将得到的 anchor box 写入到第六行，就像这样
-```
-anchors = 12,19, 19,27, 18,37, 21,38, 23,38, 26,39, 31,38, 39,44, 67,96
-```
-* 接下来，修改 data/train.names 中的内容为你需要训练的分类名字(不要用中文),并且将 config.py 中的分类数改为自己的分类数
-* **所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改**
-* 配置完成,执行命令
-```
-python train.py
-```
-* 训练完成后,将测试图片放到 test_pic 文件夹下,执行命令验证训练结果
-```
-python val.py
-```
-* 这是我用123张图片训练了 5000 步(25分钟)的结果，效果还不错
 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/save/00221_006.jpg)
+## 使用tf.data在 VOC2007 和 VOC2012 数据集上训练
+* 和**在 VOC2007 和 VOC2012 数据集上训练**一样，不过执行这一个训练文件
+  ```
+train_voc_tf_data.py
+  ```
+
+## 在自己的数据集上训练
+* **于2021年一月5日删除了训练自己数据集的相关代码，后续更改完成后再重新上传**
+* 
 
 ## 将 ckpt 模型转换为 pb 模型
 * 打开ckpt2pb.py 文件, 修改里面的 'ckpt_file_dir', "class_num", "anchors"参数，执行命令

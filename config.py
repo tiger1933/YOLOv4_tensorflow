@@ -2,8 +2,7 @@
 # configuration file
 
 # ############# Basic configuration. #############
-width = 416                     # image width in net
-height = 416                    # image height in net
+size = width = height = 416                     # image size
 batch_size = 2
 total_epoch = 45       # total epoch
 save_per_epoch = 5        # per save_step save one model
@@ -27,27 +26,17 @@ loss_name = 'loss.txt'
 lr_init = 2e-4                      # initial learning rate	# 0.00261
 lr_lower =1e-6                  # minimum learning rate    
 lr_type = 'piecewise'   # type of learning rate( 'exponential', 'piecewise', 'constant')
-piecewise_boundaries = [1, 10, 50, 100]   #  for piecewise
-piecewise_values = [2e-4, 2e-4, 2e-4, 1e-4, 1e-4]   # piecewise learning rate
+piecewise_boundaries = [3, 90, 100]   #  for piecewise
+piecewise_values = [2e-4, 0.0032, 2e-4, 1e-4]   # piecewise learning rate
 
 # configure the optimizer
 optimizer_type = 'momentum' # type of optimizer
 momentum = 0.949          # 
 weight_decay = 0.0005
 
-# ############## training on own dataset ##############
-class_num = 25
-anchors = 12,19, 14,36, 20,26, 20,37, 23,38, 27,39, 32,35, 39,44, 67,96
-model_path = "./checkpoint/"
-model_name = "model"
-name_file = './data/train.names'                # dataset's classfic names
-train_file = './data/train.txt'
-val_dir = "./test_pic"  # Test folder directory, which stores test pictures
-save_dir = "./save"         # the folder to save result image
-
 # ############## train on VOC ##############
-voc_root_dir = "/media/random/数据集/数据集/VOC"  # root directory of voc dataset
-voc_dir_ls = ['VOC2007', 'VOC2012']                # the version of voc dataset
+voc_root_dir = ["/media/random/数据集/数据集/VOC/VOC2007",
+                                    "/media/random/数据集/数据集/VOC/VOC2012"]  # root directory of voc dataset
 voc_test_dir = "./voc_test_pic"                                                 # test pictures directory for VOC dataset
 voc_save_dir = "./voc_save"                                                     # the folder to save result image for VOC dataset
 voc_model_path = "./VOC"                                                        # the folder to save model for VOC dataset

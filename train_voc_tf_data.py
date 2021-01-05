@@ -1,5 +1,5 @@
 # coding:utf-8
-# training own net
+# training on voc
 
 from tensorflow.compat.v1 import ConfigProto
 from tensorflow.compat.v1 import InteractiveSession
@@ -8,7 +8,7 @@ config.gpu_options.allow_growth = True
 session = InteractiveSession(config=config)
 
 import tensorflow as tf
-from src.Data import Data
+from src.Data_voc import Data
 from src.YOLO import YOLO
 from os import path
 import config
@@ -21,9 +21,10 @@ from src.Loss import Loss
 
 width = config.width
 height = config.height
+size = config.size
 batch_size = config.batch_size
-class_num = config.class_num
-anchors =  np.asarray(config.anchors).astype(np.float32).reshape([-1, 3, 2])
+class_num = config.voc_class_num
+anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2])
 
 iou_thresh = config.iou_thresh
 prob_thresh = config.prob_thresh
@@ -40,18 +41,20 @@ piecewise_boundaries = config.piecewise_boundaries
 piecewise_values = config.piecewise_values
 optimizer_type = config.optimizer_type
 momentum = config.momentum
-model_path = config.model_path
 
-train_file = config.train_file
+names_file = config.voc_names
 data_debug = config.data_debug
-model_name = config.model_name
+model_name = config.voc_model_name
+model_path = config.voc_model_path
 total_epoch = config.total_epoch
 save_per_epoch = config.save_per_epoch
+voc_root_dir = config.voc_root_dir
 
-# compute current  epoch : tensor
+
+#  get current epoch 
 def compute_curr_epoch(global_step, batch_size, imgs_num):
     '''
-    global_step: current step
+    global_step:current step
     batch_size:batch_size
     imgs_num: total images number
     '''
@@ -61,14 +64,36 @@ def compute_curr_epoch(global_step, batch_size, imgs_num):
 # training
 def backward():
     yolo = YOLO()
-    data = Data(train_file, class_num, batch_size, anchors, width=width, height=height, data_debug=data_debug)
-    
-    inputs = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3])
-    y1_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3, 4+1+class_num])
-    y2_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3, 4+1+class_num])
-    y3_true = tf.compat.v1.placeholder(dtype=tf.float32, shape=[batch_size, None, None, 3, 4+1+class_num])
-    
-    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, class_num=class_num, weight_decay=weight_decay, isTrain=True)
+
+    # dataset
+    data = Data(voc_root_dir, names_file, class_num, batch_size, 
+                            anchors, is_tiny=False, size=size)
+    imgs_ls = data.imgs_path
+    labels_ls = data.labels_path
+    print(imgs_ls[:5])
+    print(labels_ls[:5])
+    # create dataset
+    dataset = tf.data.Dataset.from_tensor_slices((imgs_ls, labels_ls))
+    dataset = dataset.shuffle(len(imgs_ls))   # shuffle
+    dataset = dataset.batch(batch_size=batch_size)    # 
+    dataset = dataset.map(
+        lambda imgs_batch, xmls_batch: tf.py_func(
+                data.load_tf_batch_data, 
+                inp=[(imgs_batch, xmls_batch)],
+                Tout=[tf.float32, tf.float32, tf.float32, tf.float32]),
+        num_parallel_calls=10
+    )
+    dataset = dataset.prefetch(20)
+    # iterator
+    iterator = dataset.make_initializable_iterator()
+    inputs, y1_true, y2_true, y3_true = iterator.get_next()
+    # set shape
+    inputs.set_shape([None, None, None, 3])
+    y1_true.set_shape([batch_size, None, None, 3, 5+class_num])
+    y2_true.set_shape([batch_size, None, None, 3, 5+class_num])
+    y3_true.set_shape([batch_size, None, None, 3, 5+class_num])
+
+    feature_y1, feature_y2, feature_y3 = yolo.forward(inputs, class_num, weight_decay=weight_decay, isTrain=True)
 
     global_step = tf.Variable(0, trainable=False)
     
@@ -102,6 +127,7 @@ def backward():
     saver = tf.compat.v1.train.Saver()
     with tf.compat.v1.Session() as sess:
         sess.run(init)
+        sess.run(iterator.initializer)
         step = 0
         
         ckpt = tf.compat.v1.train.get_checkpoint_state(model_path)
@@ -111,21 +137,14 @@ def backward():
             step = eval(step)
             Log.add_log("message: load ckpt model, global_step=" + str(step))
         else:
-            Log.add_log("message: can not find ckpt model")
+            Log.add_log("message:can not fint ckpt model")
         
         curr_epoch = step // data.steps_per_epoch
         while curr_epoch < total_epoch:
             for _ in range(data.steps_per_epoch):
                 start = time.perf_counter()
-                batch_img, y1, y2, y3 = next(data)
-                _, loss_, step, lr_ = sess.run([train_step, loss, global_step, lr],
-                                        feed_dict={inputs:batch_img, y1_true:y1, y2_true:y2, y3_true:y3})
+                _, loss_, step, lr_ = sess.run([train_step, loss, global_step, lr])
                 end = time.perf_counter()
-                         
-                if step % 5 == 2:
-                    print("step: %6d, epoch:%3d, loss: %.5g\t, wh: %3d, lr:%.5g\t, time: %5f s"
-                                %(step, curr_epoch, loss_, width, lr_, end-start))
-                    Log.add_loss(str(step) + "\t" + str(loss_))
                 
                 if (loss_ > 1e3) and (step > 1e3):
                     Log.add_log("error:loss exception, loss_value = "+str(loss_))
@@ -133,20 +152,24 @@ def backward():
                     raise ValueError("error:loss exception, loss_value = "+str(loss_)+", please lower your learning rate")
                     # lr = tf.math.maximum(tf.math.divide(lr, 10), config.lr_lower)
 
+                if step % 5 == 2:
+                    print("step: %6d, epoch: %3d, loss: %.5g\t, wh: %3d, lr:%.5g\t, time: %5f s"
+                                %(step, curr_epoch, loss_, width, lr_, end-start))
+                    Log.add_loss(str(step) + "\t" + str(loss_))
+
             curr_epoch += 1
             if curr_epoch % save_per_epoch == 0:
                 # save ckpt model
                 Log.add_log("message: save ckpt model, step=" + str(step) +", lr=" + str(lr_))
-                saver.save(sess, path.join(model_path, model_name), global_step=step)                  
-
-        # save ckpt model
-        Log.add_log("message:save final ckpt model, step=" + str(step))
+                saver.save(sess, path.join(model_path, model_name), global_step=step)                    
+                
+        Log.add_log("message: save final ckpt model, step=" + str(step))
         saver.save(sess, path.join(model_path, model_name), global_step=step)
-        
+
     return 0
 
 
 if __name__ == "__main__":
-    Log.add_log("message: goto backward function")
-    Log.add_loss("###########")
+    Log.add_log("message: into  VOC backward function")
+    # Log.add_loss("###########")
     backward()

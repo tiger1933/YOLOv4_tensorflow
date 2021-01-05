@@ -150,3 +150,4 @@ dmypy.json
 yolov4.pdf
 test_project.py
 save_pd_weights.py
+*copy.md

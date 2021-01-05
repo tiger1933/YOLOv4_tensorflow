@@ -18,6 +18,10 @@ def add_log(content):
     tools.write_file(log_file, content, True)
     return
 
+def log(content):
+    add_log(content)
+    return
+
 # add a loss value
 def add_loss(value):
     if not path.isdir(log_dir):
