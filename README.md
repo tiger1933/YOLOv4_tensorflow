@@ -32,7 +32,7 @@ python test_yolo_weights.py
 * the weights_name.txt contains all layer's name of the network 
 
 ## training on VOC2007 and VOC2012
-* open config.py and modify the **voc_root_dir** to the root of your VOC dataset, modify the **voc_dir_ls** to the name of VOC dataset witch  you want to train </br>
+* open config.py and modify the **voc_root_dir** to the root path of your VOC dataset </br>
 * just like this
 ```
 path_to_voc_root_dir
@@ -93,7 +93,7 @@ python val_pb.py
 * you will see the detection results with pb model 
 * you can download pb model from [baidu cloud](https://pan.baidu.com/s/1VnX5lWT4CkHyqq0JQSllmA)  Extraction code: wm1j
 
-## some tips with config.py and train the model
+## some tips with config.py and training the model
 1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416
 2. actually, you can replace mish activation with leaky_relu to save GPU memory, and then you can set batch_size from 2 to 4
 3. learning rate do not set too large

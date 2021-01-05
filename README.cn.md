@@ -32,7 +32,7 @@ python test_yolo_weights.py
 * weights_name.txt 文件中存放的是图模型的卷积层和bn的名字
 
 ## 在 VOC2007 和 VOC2012 数据集上训练
-* 打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录, voc_dir_ls 修改为自己想要训练的VOC数据集名
+* 打开 config.py ,将 voc_root_dir 修改为自己VOC数据集存放的根目录
 * 文件夹就这么放
 ```
 path_to_voc_root_dir

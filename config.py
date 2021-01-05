@@ -4,6 +4,7 @@
 # ############# Basic configuration. #############
 size = width = height = 416                     # image size
 batch_size = 2
+batch_size_tiny = 32
 total_epoch = 45       # total epoch
 save_per_epoch = 5        # per save_step save one model
 data_debug = False       # load data in debug model (show pictures when loading images)
