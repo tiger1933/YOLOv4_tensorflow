@@ -12,7 +12,7 @@ python val_voc.py
 ```
 * if have no error, it's ok
 
-## convert yolov4.weights to fiting our code
+## convert yolov4.weights to fitting our code
 * refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), I'm already converted yolov4.weights to this project.
 * you can download yolov4.weights from [baidu cloud](https://pan.baidu.com/s/1VnX5lWT4CkHyqq0JQSllmA)  Extraction code: wm1j
 * **puting yolov4.weights into the "yolo_weights" folder, and run the command.**
