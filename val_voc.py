@@ -22,7 +22,7 @@ from src.Feature_parse_tf import get_predict_result
 class_num = config.voc_class_num
 width = config.width
 height = config.height
-anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2]) if config.voc_anchors else None
+anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2])
 score_thresh = config.val_score_thresh
 iou_thresh = config.val_iou_thresh
 max_box = config.max_box
