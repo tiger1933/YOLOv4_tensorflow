@@ -24,8 +24,10 @@ height = config.height
 size = config.size
 batch_size = config.batch_size
 class_num = config.voc_class_num
-anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2])
-
+if config.voc_anchors:
+    anchors =  np.asarray(config.voc_anchors).astype(np.float32).reshape([-1, 3, 2])
+else:
+    anchors = None
 iou_thresh = config.iou_thresh
 prob_thresh = config.prob_thresh
 score_thresh = config.score_thresh

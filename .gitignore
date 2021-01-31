@@ -146,7 +146,7 @@ dmypy.json
 !/voc_save/000302.jpg
 !/voc_save/000288.jpg
 /voc_test_pic/*
-!/voc_test_pic/000046.jpg
+!/voc_test_pic/000027.jpg
 yolov4.pdf
 test_project.py
 save_pd_weights.py

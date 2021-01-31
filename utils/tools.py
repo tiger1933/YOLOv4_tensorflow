@@ -366,7 +366,7 @@ def get_anchors(ls_xml_path, ls_img_path, target_size=None, k=6, min_box = (16, 
         result.append(anchor[1])
     print("generate anchors:", result)
     print("miou:", ave_iou)
-    print("目标个数统计:\n", num_dict)
-    print("没有size个数统计:\n", count_no_size)
+    # print("目标个数统计:\n", num_dict)
+    # print("没有size个数统计:\n", count_no_size)
 
     return result

@@ -107,7 +107,7 @@ class Data():
         
         # get anchors
         if self.anchors is None:
-            self.anchors = tools.get_anchors(self.labels_path, self.imgs_path, target_size=[self.size, self.size], k=6)
+            self.anchors = tools.get_anchors(self.labels_path, self.imgs_path, target_size=[self.size, self.size], k=9)
         self.anchors = np.asarray(self.anchors).astype(np.float32).reshape([-1, 2]) / [self.size, self.size]
         Log.add_log("message:Data:anchors_ori:"+str(self.anchors * [self.size, self.size]))
         Log.add_log("message:Data:self.anchors:"+str(self.anchors))
