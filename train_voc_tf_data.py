@@ -86,6 +86,8 @@ def backward():
         num_parallel_calls=10
     )
     dataset = dataset.prefetch(20)
+    # repeat
+    dataset = dataset.repeat()
     # iterator
     iterator = dataset.make_initializable_iterator()
     inputs, y1_true, y2_true, y3_true = iterator.get_next()
