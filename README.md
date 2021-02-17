@@ -1,5 +1,5 @@
 # YOLOv4_tensorflow | [中文说明](README.cn.md)
-* Implement yolov4 with pure tensorflow
+* Implement yolov4 with tensorflow1
 * tf.data.pipline
 </br>
 
@@ -12,7 +12,7 @@ python val_voc.py
 ```
 * if have no error, it's ok
 
-## convert yolov4.weights to fitting our code
+## converts yolov4.weights to fitting our code
 * refer to [this weights convert file](https://github.com/wizyoung/YOLOv3_TensorFlow/blob/master/convert_weight.py), I'm already converted yolov4.weights to this project.
 * you can download yolov4.weights from [baidu cloud](https://pan.baidu.com/s/1VnX5lWT4CkHyqq0JQSllmA)  Extraction code: wm1j
 * **puting yolov4.weights into the "yolo_weights" folder, and run the command.**
@@ -79,7 +79,7 @@ train_voc_tf_data.py
 * **On January 5, 2021, the related code of training own dataset was deleted, and if you want to training your own dataset, following **src/Data_voc.py**  and just modify the **__init_args** function, it will be working great**
 * 
 
-## convert ckpt model to pb model
+## converts ckpt model to pb model
 * open ckpt2pb.py , and modify 'ckpt_file_dir', 'class_num', 'anchors'. run.
 ```
 python ckpt2pb.py
@@ -93,7 +93,7 @@ python val_pb.py
 * you will see the detection results with pb model 
 * you can download pb model from [baidu cloud](https://pan.baidu.com/s/1VnX5lWT4CkHyqq0JQSllmA)  Extraction code: wm1j
 
-## some tips with config.py and training the model
+## some tips about config.py and training the model
 1. the parameters of **width and height** in config.py should be 608, but i have not a powerful GPU, that is why i set them as 416
 2. actually, you can replace mish activation with leaky_relu to save GPU memory, and then you can set batch_size from 2 to 4
 3. learning rate do not set too large

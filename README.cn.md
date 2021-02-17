@@ -1,5 +1,5 @@
 # YOLOv4_tensorflow | [English introductions](README.md)
-* yolov4的纯tensorflow实现.
+* yolov4的tensorflow1实现.
 * 实现了tf.data数据加载
 </br>
 
