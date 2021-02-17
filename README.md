@@ -23,11 +23,11 @@ python test_yolo_weights.py
 * the ckpt weights file wound exits in the 'yolo_weights' folder(exists in the baidu cloud)
 * and you'll see some images like this, it seems perfect
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
+![image](coco_save/dog.jpg)
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/eagle.jpg)
+![image](coco_save/eagle.jpg)
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/person.jpg)
+![image](coco_save/person.jpg)
 * 
 * the weights_name.txt contains all layer's name of the network 
 
@@ -56,9 +56,9 @@ python val_voc.py
 ```
 * it's the result of our code training(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum) for a day(364999 steps), not bad
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
+![image](voc_save/000302.jpg)
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
+![image](voc_save/000288.jpg)
 * 
 
 * **all configuration parameters are in the config.py, you can modify them according to your actual situation**
@@ -67,7 +67,7 @@ python val_voc.py
 python show_loss.py 20 300
 ```
 * 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
+![image](loss.png)
 
 ## training on VOC2007 and VOC2012 with tf.data pipline
 * just same with **training on VOC2007 and VOC2012** but run training file

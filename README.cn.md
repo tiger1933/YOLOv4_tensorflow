@@ -22,13 +22,9 @@ python test_yolo_weights.py
 ```
 * 会在 yolo_weights 文件夹下生成 ckpt 权重文件(百度网盘里面有权重文件)
 * 并且你将会看到这样的画面,完美
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/dog.jpg)
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/eagle.jpg)
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/coco_save/person.jpg)
-* 
+![image]( coco_save/dog.jpg)
+![image]( coco_save/eagle.jpg)
+![image](coco_save/person.jpg)
 * weights_name.txt 文件中存放的是图模型的卷积层和bn的名字
 
 ## 在 VOC2007 和 VOC2012 数据集上训练
@@ -55,24 +51,20 @@ python train_voc.py
 python val_voc.py
 ```
 * 训练一天(364999步)的结果(input_size:416*416, batch_size:2, lr:2e-4, optimizer:momentum)，还不错
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000302.jpg)
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/voc_save/000288.jpg)
-* 
+![image]( voc_save/000302.jpg)
+![image]( voc_save/000288.jpg)
 * **所有的配置参数都在 config.py 中，你可以按照自己的实际情况来修改**
 * 这是我训练的损失图，学习率貌似有点太小了
 ```
 python show_loss.py 20 300
 ```
-* 
-![image](https://github.com/rrddcc/YOLOv4_tensorflow/blob/master/loss.png)
+![image]( loss.png)
 
 ## 使用tf.data在 VOC2007 和 VOC2012 数据集上训练
 * 和**在 VOC2007 和 VOC2012 数据集上训练**一样，不过执行这一个训练文件
-  ```
+```
 train_voc_tf_data.py
-  ```
+```
 
 ## 在自己的数据集上训练
 * **于2021年1月5日删除了训练自己数据集的相关代码，如果需要训练自己的数据集，对src/Data_voc.py的__init_args函数稍加修改就可以了**

@@ -260,12 +260,12 @@ class Data():
         contrast = np.random.randint(8, 16) / 10.0 if np.random.random() > 0.5 else 1.0            
         img = self.color_enhance.run(img, random_enhance=False, color=color, contrast=contrast)
         
-        # # guass noise : not use
-        # if np.random.random() < self.gasuss:
-        #     noise = np.random.normal(0, 0.01, img.shape)
-        #     img = img+noise
-        #     img = np.clip(img, 0, 1.0)
-        #     test_img = np.uint8(img*255)
+        # guass noise : not use
+        if np.random.random() < self.gasuss:
+            noise = np.random.normal(0, 0.01 * 255, img.shape)
+            img = img+noise
+            img = np.clip(img, 0, 255)
+            img = np.uint8(img)
         return img, boxes, ids
 
     # load the data of one image
